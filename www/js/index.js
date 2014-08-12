@@ -98,7 +98,7 @@ var Update = {
 	
 	updateBuild: function(fn) {
 		Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
-			Update.gotFileEntry(fileEntry, fn);
+			Update.gotFileEntry(fileEntry, 'api/build', fn);
 		}, Update.error);	
 	},
 	
@@ -108,10 +108,10 @@ var Update = {
 		}, Update.error);
 	},
 	
-	gotFileEntry: function(fileEntry, fn) {
+	gotFileEntry: function(fileEntry, url, fn) {
 		var fileTransfer = new FileTransfer();
 		fileEntry.remove();
-		fileTransfer.download(Update.server + 'api/build', fileEntry.toURL(), function(file) {
+		fileTransfer.download(Update.server + url, fileEntry.toURL(), function(file) {
 			Update.downloadComplete(file, fn);
 		}, Update.error);
 	},
@@ -127,13 +127,20 @@ var Update = {
 
 	update: function() {
 		console.debug('UPDATEING');
+		
+		Update.getFile('', 'cockpit.html');
 
 		for (var x in Update.build.remote.files) {
-			Update.getFile(Update.build.remote.files[x]);
+			//Update.getFile(Update.build.remote.files[x], Update.build.remote.files[x]);
 		}
 	},
 	
-	getFile: function(file) {
-		console.log('downloading ', file);
+	getFile: function(remote, local) {
+		console.log('downloading ', remote);
+		
+		Update.fs.root.getFile(Update.path + local, {create: true, exclusive: false}, function(fileEntry) {
+			Update.gotFileEntry(fileEntry, remote, fn);
+			fn(file);
+		}, Update.error);
 	}
 };
