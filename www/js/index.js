@@ -1,5 +1,39 @@
+var app = {
+    // Application Constructor
+    initialize: function() {
+        this.bindEvents();
+    },
+    // Bind Event Listeners
+    //
+    // Bind any events that are required on startup. Common events are:
+    // 'load', 'deviceready', 'offline', and 'online'.
+    bindEvents: function() {
+        document.addEventListener('deviceready', this.onDeviceReady, false);
+    },
+    // deviceready Event Handler
+    //
+    // The scope of 'this' is the event. In order to call the 'receivedEvent'
+    // function, we must explicitly call 'app.receivedEvent(...);'
+    onDeviceReady: function() {
+    	Update.init();
+        app.receivedEvent('deviceready');
+    },
+    // Update DOM on a Received Event
+    receivedEvent: function(id) {
+        var parentElement = document.getElementById(id);
+        var listeningElement = parentElement.querySelector('.listening');
+        var receivedElement = parentElement.querySelector('.received');
 
-var App = {
+        listeningElement.setAttribute('style', 'display:none;');
+        receivedElement.setAttribute('style', 'display:block;');
+
+        console.log('Received Event: ' + id);
+    }
+};
+
+
+
+var Update = {
 	fs: null,
 	build: [],
 	init: function() {
@@ -8,9 +42,17 @@ var App = {
 		};
 		var success = function(fs) {
 			console.log('SUCCESS',arguments);
-			App.fs = fs;
+			Update.fs = fs;
 		};
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
+	},
+	read: function(file) {
+		var reader = new FileReader();
+		reader.onloadend = function (evt) {
+			console.log("read success");
+			console.log(evt.target.result);
+		};
+		reader.readAsText(file);
 	},
     clicky: function() {
     	var server = 'http://cockpit3.localhost/';
@@ -40,30 +82,33 @@ var App = {
 		};
 
 		var currentBuild = function(fn) {
-			App.fs.root.getFile('build.json', {create: true, exclusive: false}, function(file) {
+			Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(file) {
 				fn(file);
 			}, fail);
 		};
 		
 		var updateBuild = function(fn) {
-			App.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
+			Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
 				gotFileEntry(fileEntry, fn);
 			}, fail);
 		};
 		
 		var update = function() {
 			console.debug('UPDATEING');
-			console.log(App.build.remote);
+			console.log(Update.build.remote);
 		};
 		
 		var checkBuild = function() {
 			currentBuild(function(build) {
-				App.build.local = JSON.parse(build);
+				if (build) {
+					console.log(build);
+					Update.build.local = JSON.parse(Update.read(build));
+				}
 
 				updateBuild(function(build) {
-					App.build.remote = JSON.parse(build);
+					Update.build.remote = JSON.parse(Update.read(build));
 					
-					if (!App.build.local || !App.build.local.version || App.build.local.version != App.build.remote.version) {
+					if (!Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version) {
 						update();
 					}
 				});
