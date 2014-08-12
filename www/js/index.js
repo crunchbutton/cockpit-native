@@ -35,7 +35,11 @@ var app = {
 
 var Update = {
 	fs: null,
-	build: [],
+	build: {},
+	server: 'http://cockpit3.localhost/',
+	path: 'assets/',
+	force: true,
+
 	init: function() {
 		var error = function() {
 			console.log('ERROR',arguments);
@@ -43,84 +47,93 @@ var Update = {
 		var success = function(fs) {
 			console.log('SUCCESS',arguments);
 			Update.fs = fs;
+			Update.checkBuild();
 		};
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
 	},
-	read: function(file) {
-		var reader = new FileReader();
-		reader.onloadend = function (evt) {
-			console.log("read success");
-			console.log(evt.target.result);
+
+	read: function(entry, fn) {
+		console.log('reading',entry);
+		
+		var win = function(file) {
+	
+			var reader = new FileReader();
+			reader.onloadend = function (evt) {
+				console.log('read success');
+				console.log(evt.target.result);
+				fn(evt.target.result);
+			};
+			reader.readAsText(file);
 		};
-		reader.readAsText(file);
+		
+		var fail = function() {
+			console.log('failed to access file');
+			fn(null);
+		};
+
+		entry.file(win, fail);
+
 	},
-    clicky: function() {
-    	var server = 'http://cockpit3.localhost/';
-    	
-    	var fail = function() {
-	    	console.log(arguments);
-    	};
+		
+	checkBuild: function() {
+		Update.currentBuild(function(build) {
+			console.log('build',build);
 
-		var downloadError = function(error) {
-			console.log("download error source " + error.source);
-			console.log("download error target " + error.target);
-			console.log("download error code: " + error.code);
-			console.log(error);
-		};
-		
-		var downloadComplete = function(file, fn) {
-			console.log("download complete: " + file.toURL());
-			fn(file);
-		};
-		
-		var gotFileEntry = function(fileEntry, fn) {
-			var fileTransfer = new FileTransfer();
-			fileEntry.remove();
-			fileTransfer.download(server + 'api/build', fileEntry.toURL(), function(file) {
-				downloadComplete(file, fn);
-			}, downloadError);
-		};
+			Update.read(build, function(res) {
+				Update.build.local = JSON.parse(res);
 
-		var currentBuild = function(fn) {
-			Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(file) {
-				fn(file);
-			}, fail);
-		};
-		
-		var updateBuild = function(fn) {
-			Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
-				gotFileEntry(fileEntry, fn);
-			}, fail);
-		};
-		
-		var update = function() {
-			console.debug('UPDATEING');
-			console.log(Update.build.remote);
-		};
-		
-		var checkBuild = function() {
-			currentBuild(function(build) {
-				if (build) {
-					console.log(build);
-					Update.build.local = JSON.parse(Update.read(build));
-				}
+				Update.updateBuild(function(build) {
+					Update.read(build, function(res) {
+						Update.build.remote = JSON.parse(res);
 
-				updateBuild(function(build) {
-					Update.build.remote = JSON.parse(Update.read(build));
-					
-					if (!Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version) {
-						update();
-					}
+						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version) {
+							Update.update();
+						}
+					});
 				});
 			});
-		};
-		
-		checkBuild();
-		
 
-		
-		
+		});
+	},
+	
+	updateBuild: function(fn) {
+		Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
+			Update.gotFileEntry(fileEntry, fn);
+		}, Update.error);	
+	},
+	
+	currentBuild: function(fn) {
+		Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(file) {
+			fn(file);
+		}, Update.error);
+	},
+	
+	gotFileEntry: function(fileEntry, fn) {
+		var fileTransfer = new FileTransfer();
+		fileEntry.remove();
+		fileTransfer.download(Update.server + 'api/build', fileEntry.toURL(), function(file) {
+			Update.downloadComplete(file, fn);
+		}, Update.error);
+	},
+	
+	downloadComplete:function(file, fn) {
+		console.log("download complete: " + file.toURL());
+		fn(file);
+	},
+	
+	error: function() {
+		console.log('ERROR',arguments);
+	},
 
-		
-    }
+	update: function() {
+		console.debug('UPDATEING');
+
+		for (var x in Update.build.remote.files) {
+			Update.getFile(Update.build.remote.files[x]);
+		}
+	},
+	
+	getFile: function(file) {
+		console.log('downloading ', file);
+	}
 };
