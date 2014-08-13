@@ -129,18 +129,100 @@ var Update = {
 		console.debug('UPDATEING');
 		
 		Update.getFile('', 'cockpit.html');
-
-		for (var x in Update.build.remote.files) {
-			//Update.getFile(Update.build.remote.files[x], Update.build.remote.files[x]);
-		}
+		
+		var filesComplete = function() {
+			
+		};
+		
+		Update.getFiles(Update.build.remote.files, filesComplete);
 	},
 	
-	getFile: function(remote, local) {
+	getFiles: function(files, fn) {
+		if (!files.length) {
+			fn();
+		}
+		var file = files.shift();
+		Update.getFile(file, Update.path + file, function() {
+			Update.getFiles(files, fn);
+		});
+	},
+	
+	getFile: function(remote, local, fn) {
 		console.log('downloading ', remote);
 		
-		Update.fs.root.getFile(Update.path + local, {create: true, exclusive: false}, function(fileEntry) {
+		var fn = function(file) {
+			//location.href = file.toURL();
+		};
+		
+		/*
+		Update.fs.root.getFile(local, {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, remote, fn);
-			fn(file);
 		}, Update.error);
+		*/
+		
+		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
+			Update.gotFileEntry(fileEntry, remote, fn);
+		}, Update.error);
+	},
+	
+	recursiveGetFile: function(local, opts, success, fail) {
+		var path = local.split('/');
+		var used = [];
+		var name = '';
+
+		function dir(s, f) {
+
+			used.push(path.shift());
+			name = used.join('/');
+			console.debug(name);
+			
+			var suc = function(fileEntry) {
+				if (!path.length) {
+					success(fileEntry);
+				} else {
+					dir(s, f);
+				}
+			};
+
+			if (path.length > 0) {
+				console.debug('Creating directory', name);
+				Update.fs.root.getDirectory(name, opts, suc, f);
+			} else {
+				console.debug('Creating file', name);
+				Update.fs.root.getFile(name, opts, suc, f);
+			}
+		}
+
+		dir(dir, fail);
 	}
+};
+
+var Queue = function(files) {
+	this.files = files;
+	this.dls = [];
+	
+	this.complete = function(f) {
+		
+	};
+	
+	this.alldone = function() {
+		this.complete();
+	};
+	
+	this.abort = function() {
+		
+	};
+	
+	this.start = function() {
+		
+	};
+	
+	this.status = function() {
+		
+	};
+	
+	this.complete = function() {
+		
+	};
+
 };
