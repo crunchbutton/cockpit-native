@@ -129,7 +129,7 @@ var Update = {
 		console.debug('UPDATEING');
 		
 		var forward = function(file) {
-			location.href = file.toURL();
+			//location.href = file.toURL();
 		}
 
 		var filesComplete = function() {
@@ -153,13 +153,7 @@ var Update = {
 	
 	getFile: function(remote, local, fn) {
 		console.log('downloading ', remote);
-		
-		/*
-		Update.fs.root.getFile(local, {create: true, exclusive: false}, function(fileEntry) {
-			Update.gotFileEntry(fileEntry, remote, fn);
-		}, Update.error);
-		*/
-		
+
 		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, remote, fn);
 		}, Update.error);
