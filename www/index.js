@@ -88,7 +88,6 @@ var Update = {
 	},
 	
 	write: function(entry, data, fn) {
-		console.log(data);
 		var win = function(writer) {
 			writer.onwrite = function(evt) {
 				fn();
@@ -164,6 +163,11 @@ var Update = {
 	complete: function() {
 		console.debug('Update complete!');
 		Update.setProgress({'action': 'complete'});
+		
+		
+		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
+			location.href = file.toURL();
+		}, Update.error);
 	},
 	
 	digestIndex: function(file) {
@@ -178,7 +182,8 @@ var Update = {
 			data = data.replace(/<script src="\/\//g, '<script src="https://');
 			data = data.replace(/="\/assets\/css/g, '="assets/css');
 			data = data.replace(/="\/assets\/js/g, '="assets/js');
-			
+			data = data.replace(/<link href="\/\//g, '<link href="https://');
+
 			Update.write(file, data, complete);
 		};
 		
