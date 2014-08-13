@@ -1,41 +1,6 @@
-var app = {
-	version: '0.5.0',
-
-    // Application Constructor
-    initialize: function() {
-        this.bindEvents();
-    },
-    // Bind Event Listeners
-    //
-    // Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
-    bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-    },
-    // deviceready Event Handler
-    //
-    // The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
-    onDeviceReady: function() {
-    	Update.init();
-        app.receivedEvent('deviceready');
-    },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
-    }
-};
-
-
 
 var Update = {
+	version: '0.5.0',
 	fs: null,
 	build: {},
 	server: 'http://cockpit3.localhost/',
@@ -67,7 +32,7 @@ var Update = {
 		}
 		
 		if (args.action == 'complete') {
-			Update.progress == 100;
+			Update.progress = 100;
 		}
 		
 		Update.displayProgress();
@@ -185,7 +150,7 @@ var Update = {
 		}
 
 		var filesComplete = function() {
-			Update.getFile('', 'cockpit.html', forward);
+			Update.getFile('?_bundle=1', 'cockpit.html', forward);
 		};
 		
 		Update.queue = Update.build.remote.files.length + 1;
@@ -246,3 +211,6 @@ var Update = {
 		dir(dir, fail);
 	}
 };
+
+
+document.addEventListener('deviceready', Update.init, false);
