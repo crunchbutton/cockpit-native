@@ -128,10 +128,12 @@ var Update = {
 	update: function() {
 		console.debug('UPDATEING');
 		
-		Update.getFile('', 'cockpit.html');
-		
+		var forward = function(file) {
+			location.href = file.toURL();
+		}
+
 		var filesComplete = function() {
-			
+			Update.getFile('', 'cockpit.html', forward);
 		};
 		
 		Update.getFiles(Update.build.remote.files, filesComplete);
@@ -139,7 +141,9 @@ var Update = {
 	
 	getFiles: function(files, fn) {
 		if (!files.length) {
+			console.debug('NO MORE FILES TO DOWNLOAD');
 			fn();
+			return;
 		}
 		var file = files.shift();
 		Update.getFile(file, Update.path + file, function() {
@@ -149,10 +153,6 @@ var Update = {
 	
 	getFile: function(remote, local, fn) {
 		console.log('downloading ', remote);
-		
-		var fn = function(file) {
-			//location.href = file.toURL();
-		};
 		
 		/*
 		Update.fs.root.getFile(local, {create: true, exclusive: false}, function(fileEntry) {
@@ -195,34 +195,4 @@ var Update = {
 
 		dir(dir, fail);
 	}
-};
-
-var Queue = function(files) {
-	this.files = files;
-	this.dls = [];
-	
-	this.complete = function(f) {
-		
-	};
-	
-	this.alldone = function() {
-		this.complete();
-	};
-	
-	this.abort = function() {
-		
-	};
-	
-	this.start = function() {
-		
-	};
-	
-	this.status = function() {
-		
-	};
-	
-	this.complete = function() {
-		
-	};
-
 };
