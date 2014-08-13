@@ -10,9 +10,12 @@
     <icon src="icon.png" />
     <content src="index.html" />
     
-    <preference name="DisallowOverscroll" value="true" />
-    <preference name="BackgroundColor" value="0xff202228" />
-    <preference name="HideKeyboardFormAccessoryBar" value="true" />
+    <!preference name="DisallowOverscroll" value="true" />
+    <preference name="webviewbounce"              value="false" />
+    <!preference name="BackgroundColor" value="0xff202228" />
+    <!preference name="HideKeyboardFormAccessoryBar" value="true" />
+    
+    <preference name="ios-statusbarstyle"         value="black-opaque" />
     
     <access origin="*" />
 </widget>
