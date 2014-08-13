@@ -19,6 +19,7 @@ var Update = {
 			Update.fs = fs;
 			Update.checkBuild();
 		};
+		Update.setProgress({'action': 'start'});
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
 	},
 	
