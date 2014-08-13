@@ -1,4 +1,6 @@
 var app = {
+	version: '0.5.0',
+
     // Application Constructor
     initialize: function() {
         this.bindEvents();
@@ -38,36 +40,77 @@ var Update = {
 	build: {},
 	server: 'http://cockpit3.localhost/',
 	path: 'assets/',
+	remotePath: 'assets/',
 	force: true,
+	progress: 0,
+	queue: 0,
 
 	init: function() {
 		var error = function() {
-			console.log('ERROR',arguments);
+			console.error('Failed allocating space on device.', arguments);
 		};
 		var success = function(fs) {
-			console.log('SUCCESS',arguments);
+			console.debug('Successfully allocated space on device.');
 			Update.fs = fs;
 			Update.checkBuild();
 		};
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
 	},
+	
+	setProgress: function(args) {
+		if (args.action == 'config') {
+			Update.progress += 5;
+		}
+		
+		if (args.action == 'file') {
+			Update.progress += (1 / Update.queue) * .9 * 100;
+		}
+		
+		if (args.action == 'complete') {
+			Update.progress == 100;
+		}
+		
+		Update.displayProgress();
+	},
+	
+	displayProgress: function() {
+		var colors = {
+			'5': 'f63a0f',
+			'25': 'f27011',
+			'50': 'f2b01e',
+			'75': 'f2d31b',
+			'100': '86e01e'
+		};
+		
+		var color = 'f63a0f';
+	
+		for (var x in colors) {
+			if (Update.progress >= x) {
+				color = colors[x];
+			}
+		}
+		
+		var bar = document.querySelector('.progress-bar');
+		
+		bar.style.width = Update.progress + '%';
+		bar.style.backgroundColor = '#' + color;
+	},
 
 	read: function(entry, fn) {
-		console.log('reading',entry);
+		console.debug('Reading file: ', entry);
 		
 		var win = function(file) {
 	
 			var reader = new FileReader();
 			reader.onloadend = function (evt) {
-				console.log('read success');
-				console.log(evt.target.result);
+				console.debug('Successfully read file: ', evt.target.result);
 				fn(evt.target.result);
 			};
 			reader.readAsText(file);
 		};
 		
 		var fail = function() {
-			console.log('failed to access file');
+			console.error('Failed to read file');
 			fn(null);
 		};
 
@@ -77,7 +120,6 @@ var Update = {
 		
 	checkBuild: function() {
 		Update.currentBuild(function(build) {
-			console.log('build',build);
 
 			Update.read(build, function(res) {
 				Update.build.local = JSON.parse(res);
@@ -85,9 +127,13 @@ var Update = {
 				Update.updateBuild(function(build) {
 					Update.read(build, function(res) {
 						Update.build.remote = JSON.parse(res);
+						
+						Update.setProgress({'action': 'config'});
 
 						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version) {
 							Update.update();
+						} else {
+							Update.complete();
 						}
 					});
 				});
@@ -117,42 +163,53 @@ var Update = {
 	},
 	
 	downloadComplete:function(file, fn) {
-		console.log("download complete: " + file.toURL());
+		console.debug('Download complete: ' + file.toURL());
 		fn(file);
 	},
 	
 	error: function() {
-		console.log('ERROR',arguments);
+		console.error(arguments);
+	},
+	
+	complete: function() {
+		console.debug('Update complete!');
+		Update.setProgress({'action': 'complete'});
 	},
 
 	update: function() {
-		console.debug('UPDATEING');
+		console.debug('Updating...');
 		
 		var forward = function(file) {
-			//location.href = file.toURL();
+			Update.setProgress({'action': 'file'});
+			Update.complete();
 		}
 
 		var filesComplete = function() {
 			Update.getFile('', 'cockpit.html', forward);
 		};
 		
+		Update.queue = Update.build.remote.files.length + 1;
+		
 		Update.getFiles(Update.build.remote.files, filesComplete);
 	},
 	
 	getFiles: function(files, fn) {
 		if (!files.length) {
-			console.debug('NO MORE FILES TO DOWNLOAD');
+			console.debug('Finished downloading files.');
 			fn();
 			return;
 		}
 		var file = files.shift();
-		Update.getFile(file, Update.path + file, function() {
+		Update.getFile(Update.remotePath + file, Update.path + file, function() {
+			Update.setProgress({'action': 'file'});
 			Update.getFiles(files, fn);
 		});
 	},
 	
 	getFile: function(remote, local, fn) {
-		console.log('downloading ', remote);
+		console.debug('Downloading: ' + remote);
+		
+		//local = local.replace(/^cockpit\//,'');
 
 		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, remote, fn);
@@ -168,7 +225,6 @@ var Update = {
 
 			used.push(path.shift());
 			name = used.join('/');
-			console.debug(name);
 			
 			var suc = function(fileEntry) {
 				if (!path.length) {
@@ -179,10 +235,10 @@ var Update = {
 			};
 
 			if (path.length > 0) {
-				console.debug('Creating directory', name);
+				console.debug('Creating directory: ' + name);
 				Update.fs.root.getDirectory(name, opts, suc, f);
 			} else {
-				console.debug('Creating file', name);
+				console.debug('Creating file: ' + name);
 				Update.fs.root.getFile(name, opts, suc, f);
 			}
 		}
