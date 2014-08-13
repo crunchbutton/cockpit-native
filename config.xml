@@ -9,5 +9,10 @@
     </author>
     <icon src="icon.png" />
     <content src="index.html" />
+    
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="BackgroundColor" value="0xff202228" />
+    <preference name="HideKeyboardFormAccessoryBar" value="true" />
+    
     <access origin="*" />
 </widget>
