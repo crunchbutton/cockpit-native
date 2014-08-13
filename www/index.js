@@ -28,8 +28,12 @@ var Update = {
 			Update.progress += 5;
 		}
 		
+		if (args.action == 'digest') {
+			Update.progress += 5;
+		}
+		
 		if (args.action == 'file') {
-			Update.progress += (1 / Update.queue) * .9 * 100;
+			Update.progress += (1 / Update.queue) * .80 * 100;
 		}
 		
 		if (args.action == 'complete') {
@@ -81,7 +85,27 @@ var Update = {
 		};
 
 		entry.file(win, fail);
+	},
+	
+	write: function(entry, data, fn) {
+		console.log(data);
+		var win = function(writer) {
+			writer.onwrite = function(evt) {
+				fn();
+			};
+			writer.onerror = function() {
+				console.error('Failed to write file');
+				Update.error();
+			};
+			writer.write(data);
+		};
 
+		var fail = function(evt) {
+			console.error('Failed to access file');
+			Update.error();
+		};
+
+		entry.createWriter(win, fail);
 	},
 		
 	checkBuild: function() {
@@ -141,13 +165,40 @@ var Update = {
 		console.debug('Update complete!');
 		Update.setProgress({'action': 'complete'});
 	},
+	
+	digestIndex: function(file) {
+		//<script src="//
+		
+		var complete = function() {
+			Update.setProgress({'action': 'file'});
+			Update.complete();
+		};
+		
+		var replace = function(data) {
+			data = data.replace(/<script src="\/\//g, '<script src="https://');
+			data = data.replace(/="\/assets\/css/g, '="assets/css');
+			data = data.replace(/="\/assets\/js/g, '="assets/js');
+			
+			Update.write(file, data, complete);
+		};
+		
+		Update.read(file, function(data) {
+
+			if (!data) {
+				Update.error();
+			} else {
+				replace(data);
+			}
+		});
+
+	},
 
 	update: function() {
 		console.debug('Updating...');
 		
 		var forward = function(file) {
 			Update.setProgress({'action': 'file'});
-			Update.complete();
+			Update.digestIndex(file);
 		}
 
 		var filesComplete = function() {
