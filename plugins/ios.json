@@ -31,6 +31,14 @@
                         {
                             "xml": "<preference name=\"StatusBarBackgroundColor\" value=\"#000000\" />",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"AppVersion\"><param name=\"ios-package\" value=\"AppVersion\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"NetworkStatus\"><param name=\"ios-package\" value=\"CDVConnection\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -46,6 +54,24 @@
                     "MobileCoreServices.framework": [
                         {
                             "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "Foundation.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "QuickLook.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "SystemConfiguration.framework": [
+                        {
+                            "xml": "true",
                             "count": 1
                         }
                     ]
@@ -64,6 +90,12 @@
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         },
         "com.phonegap.plugin.statusbar": {
+            "PACKAGE_NAME": "com.crunchbutton.cockpit"
+        },
+        "net.bgta.phonegap.plugin.appversion": {
+            "PACKAGE_NAME": "com.crunchbutton.cockpit"
+        },
+        "org.apache.cordova.network-information": {
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         }
     },
