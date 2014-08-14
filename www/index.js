@@ -8,6 +8,7 @@ var Update = {
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: false,
+	forward: true,
 	progress: 0,
 	queue: 0,
 	running: false,
@@ -284,10 +285,12 @@ var Update = {
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
 			if (!Update.isError) {
 				document.getElementById('status').className = 'status-success';
-			
-				setTimeout(function() {
-//					location.href = file.toURL();				
-				}, 100);
+
+				if (Update.forward) {
+					setTimeout(function() {
+						location.href = file.toURL();				
+					}, 100);
+				}
 			}
 		}, function() {
 			Update.error('Failed opening cokpit.phtml', arguments);
