@@ -3,8 +3,8 @@ var Update = {
 	version: '0.0.0',
 	fs: null,
 	build: {},
-	server: 'http://cockpit3.localhost/',
-//	server: 'http://beta.cockpit.la/',
+//	server: 'http://cockpit3.localhost/',
+	server: 'http://beta.cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: false,
@@ -29,7 +29,7 @@ var Update = {
 		}
 		Update.started = true;
 		
-		document.getElementById('status').className = 'status-connecting';
+		document.getElementById('status').className = 'status-retry';
 
 		document.querySelector('.log').innerHTML = '';
 		Update.debug('Native App Version: ' + Update.version);
@@ -56,8 +56,6 @@ var Update = {
 		};
 		
 		var checkAndRun = function() {
-			document.getElementById('status').className = 'status-connecting';
-
 			Update.debug('Checking connection...');
 			if (Update.checkConnection()) {
 				Update.debug('Connection Good!');
@@ -73,6 +71,7 @@ var Update = {
 				Update.setProgress({'action': 'start'});
 				window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
 			} else {
+				document.getElementById('status').className = 'status-connecting';
 				Update.error('No connection.');
 			}
 		};
@@ -106,14 +105,17 @@ var Update = {
 	},
 	
 	setProgress: function(args) {
+		// one config
 		if (args.action == 'config') {
 			Update.progress += 5;
 		}
-		
+
+		// on digest
 		if (args.action == 'digest') {
 			Update.progress += 5;
 		}
 		
+		// queue is files + 1
 		if (args.action == 'file') {
 			Update.progress += (1 / Update.queue) * .80 * 100;
 		}
@@ -239,7 +241,7 @@ var Update = {
 		fileTransfer.download(Update.server + url, fileEntry.toURL(), function(file) {
 			Update.downloadComplete(file, fn);
 		}, function() {
-			Update.error('Failed writing download: ' + fileEntry.name, arguments);
+			Update.error('Failed downloading: ' + fileEntry.name, arguments);
 		});
 	},
 	
@@ -284,7 +286,7 @@ var Update = {
 				document.getElementById('status').className = 'status-success';
 			
 				setTimeout(function() {
-					location.href = file.toURL();				
+//					location.href = file.toURL();				
 				}, 100);
 			}
 		}, function() {
@@ -293,8 +295,10 @@ var Update = {
 	},
 	
 	digestIndex: function(file) {
+		Update.debug('Configuring settings...');
 		var complete = function() {
-			Update.setProgress({'action': 'file'});
+			Update.debug('Successfully configured');
+			Update.setProgress({'action': 'digest'});
 			Update.complete();
 		};
 		
@@ -319,7 +323,7 @@ var Update = {
 
 	update: function() {
 		Update.debug('Updating...');
-		Update.debug('Remove version: ' + Update.build.remote.version);
+		Update.debug('Updating to version: ' + Update.build.remote.version);
 		
 		var forward = function(file) {
 			Update.setProgress({'action': 'file'});

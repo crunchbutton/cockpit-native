@@ -128,6 +128,7 @@ button, :focus {
 .status-connecting h1:not(.message-connecting),
 .status-loading h1:not(.message-loading),
 .status-error h1:not(.message-error),
+.status-retry h1:not(.message-retry),
 .status-success h1:not(.message-success) {
 	display: none;
 }
