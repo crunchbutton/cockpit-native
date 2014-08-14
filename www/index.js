@@ -275,7 +275,14 @@ var Update = {
 
 		var log = document.querySelector('.log');
 		log.appendChild(message);
-		log.scrollTop = log.scrollHeight;
+
+		if (window.jQuery) {
+			jQuery(log).stop(true,false).animate({
+				scrollTop: log.scrollHeight
+			}, 600);
+		} else {
+//			log.scrollTop = log.scrollHeight;	
+		}
 	},
 	
 	complete: function() {
@@ -289,7 +296,7 @@ var Update = {
 				if (Update.forward) {
 					setTimeout(function() {
 						location.href = file.toURL();				
-					}, 100);
+					}, 220);
 				}
 			}
 		}, function() {

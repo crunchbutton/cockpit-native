@@ -88,7 +88,7 @@ button, :focus {
 .log {
 	font-size: .9em;
 	text-align: left;
-	height: 120px;
+	height: 140px;
 	width: 100%;
 
 	overflow-y: scroll;
@@ -199,11 +199,10 @@ body {
 	width: 0;
 }
 .progress-bar.animated {
-	-webkit-transform: translateZ(0);
-	-webkit-transition: 0.1s ease-in-out;
-	-moz-transition: 0.1s ease-in-out;
-	-o-transition: 0.1s ease-in-out;
-	transition: 0.1s ease-in-out;
+	-webkit-transition: 0.2s ease-in-out;
+	-moz-transition: 0.2s ease-in-out;
+	-o-transition: 0.2s ease-in-out;
+	transition: 0.2s ease-in-out;
 	-webkit-transition-property: width, background-color;
 	-moz-transition-property: width, background-color;
 	-o-transition-property: width, background-color;
