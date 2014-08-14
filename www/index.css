@@ -25,6 +25,7 @@ footer, header, hgroup, menu, nav, section {
 }
 body {
 	line-height: 1;
+	font-size: 10px;
 }
 ol, ul {
 	list-style: none;
@@ -43,12 +44,16 @@ table {
 }
 
 
+a {
+	color: #d74924;
+	text-decoration: underline;
+}
 
 
 
-
-
-
+button, :focus {
+	outline : none;
+}
 
 
 @keyframes fade {
@@ -63,22 +68,75 @@ table {
     to { opacity: 1.0; }
 }
  
-.blink {
+.log div.error {
+	-webkit-transform: translateZ(0);
     animation:fade 3000ms infinite;
     -webkit-animation:fade 3000ms infinite;
 }
 
 
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@-webkit-keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1.0; }
+}
+
+.log {
+	font-size: .9em;
+	text-align: left;
+	height: 120px;
+	width: 100%;
+
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+	overflow-x: hidden;
+	margin-top: 2em;
+	margin-bottom: 1em;
+	word-break:break-all;
+}
+
+.log div {
+	-webkit-transform: translateZ(0);
+
+	padding-bottom: .4em;
+	margin-bottom: .4em;
+	border-bottom: 1px dashed #46474c;
+
+    animation: fadeIn 100ms 1;
+    -webkit-animation: fadeIn 100ms 1;
+}
+
+.log .debug {
+	color: #9fa0a2;
+}
+
+.log .error {
+	color: #ea4444;
+}
+
+#status {
+	margin-bottom: 1em;
+}
+
+.status-connecting h1:not(.message-connecting) {
+	display: none;
+}
+.status-loading h1:not(.message-loading) {
+	display: none;	
+}
+.status-error h1:not(.message-error) {
+	display: none;
+}
 
 
-
-
-
-
-
-
-
+.help {
+	margin-top: 1em;
+	line-height: 1.5em;
+}
 
 
 
@@ -86,14 +144,14 @@ table {
 
 
 body {
-	font: 12px Ruda;
+	font: 12px Trebuchet MS, Helvetica, sans-serif;
 	color: #fff;
 	background: #202228;
 }
 
 .container {
 	margin: 0 auto;
-	padding-top: 270px;
+	padding-top: 40%;
 	width: 260px;
 	text-align: center;
 }
@@ -107,8 +165,10 @@ body {
 	padding: 4px;
 	background: rgba(0, 0, 0, 0.25);
 	border-radius: 6px;
+	/*
 	-webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px rgba(255, 255, 255, 0.08);
 	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px rgba(255, 255, 255, 0.08);
+	*/
 }
 
 .progress-bar {
@@ -118,8 +178,10 @@ body {
 	-webkit-box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
 	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
 	box-sizing: border-box;
+	width: 0;
 }
 .progress-bar.animated {
+	-webkit-transform: translateZ(0);
 	-webkit-transition: 0.1s ease-in-out;
 	-moz-transition: 0.1s ease-in-out;
 	-o-transition: 0.1s ease-in-out;
@@ -144,9 +206,40 @@ body {
 	z-index: 2;
 	bottom: 45%;
 	border-radius: 4px;
+	/*
 	background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
 	background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
 	background-image: -o-linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
 	background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+	*/
 }
 
+h1 {
+	font-size: 1.2em;
+	font-weight: bold;
+	text-transform:uppercase;
+}
+
+
+
+/* colors */
+.button.orange {
+	background: #e1574c;
+	font-weight: bold;
+}
+
+.button {
+	border: 0;
+	padding: .5em 0 .5em 0;
+	border-radius: 5px;
+	cursor: pointer;
+	color: #fff;
+	text-transform: uppercase;
+	font-size: 1.1em;
+	width: 100%;
+
+}
+
+.button:active {
+	opacity: .8;
+}

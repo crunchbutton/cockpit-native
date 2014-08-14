@@ -1,27 +1,78 @@
 
 var Update = {
-	version: '0.5.0',
+	version: '0.0.0',
 	fs: null,
 	build: {},
-//	server: 'http://cockpit3.localhost/',
-	server: 'http://beta.cockpit.la/',
+	server: 'http://cockpit3.localhost/',
+//	server: 'http://beta.cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: false,
 	progress: 0,
 	queue: 0,
+	running: false,
+	isError: false,
 
 	init: function() {
+		getAppVersion(function(version) {
+			Update.debug('Native App Version: ' + version);
+			Update.version = version;
+		});
+
+		Update.start();
+	},
+	
+	start: function() {
+
 		var error = function() {
-			console.error('Failed allocating space on device.', arguments);
+			Update.error('Failed allocating space on device.', arguments);
 		};
+
 		var success = function(fs) {
-			console.debug('Successfully allocated space on device.');
+			Update.debug('Successfully allocated space on device.');
 			Update.fs = fs;
 			Update.checkBuild();
 		};
-		Update.setProgress({'action': 'start'});
-		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
+		
+		var checkAndRun = function() {
+			if (Update.checkConnection()) {
+				// start up
+				Update.isError = false;
+				Update.queue = Update.progress = 0;
+				
+				clearInterval(repeatCheck);
+				Update.running = true;
+				Update.setProgress({'action': 'start'});
+				window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
+			}
+		};
+
+		var repeatCheck = setInterval(function() {
+			checkAndRun();
+		}, 500);
+	},
+	
+	checkConnection: function() {
+		var status = false;
+		switch (navigator.connection.type) {
+			case Connection.ETHERNET:
+			case Connection.WIFI:
+			case Connection.CELL_2G:
+			case Connection.CELL_3G:
+			case Connection.CELL_4G:
+			case Connection.CELL:
+				status = true;
+				break;
+
+			case Connection.NONE:
+			case Connection.UNKNOWN:
+			default:
+				status = false;
+				document.getElementById('status').className = 'status-connecting';
+				break;		
+		}
+		
+		return status;
 	},
 	
 	setProgress: function(args) {
@@ -72,13 +123,13 @@ var Update = {
 	},
 
 	read: function(entry, fn) {
-		console.debug('Reading file: ', entry);
+		Update.debug('Reading file: ' + entry.name);
 		
 		var win = function(file) {
 	
 			var reader = new FileReader();
 			reader.onloadend = function (evt) {
-				console.debug('Successfully read file: ', evt.target.result);
+				Update.debug('Successfully read file: ' + entry.name);
 				fn(evt.target.result);
 			};
 			reader.readAsText(file);
@@ -159,22 +210,41 @@ var Update = {
 	},
 	
 	downloadComplete:function(file, fn) {
-		console.debug('Download complete: ' + file.toURL());
+		Update.debug('Download complete: ' + file.name);
 		fn(file);
 	},
 	
-	error: function() {
+	debug: function(txt) {
+		console.debug(arguments);
+		Update.log('debug', txt);
+	},
+	error: function(txt) {
 		console.error(arguments);
+		Update.log('error', txt);
+		Update.isError = true;
+		
+		document.getElementById('status').className = 'status-error';
+	},
+	log: function(type, txt) {
+		var message = document.createElement('div');
+		message.innerHTML = txt;
+		message.className = type;
+
+		var log = document.querySelector('.log');
+		log.appendChild(message);
+		log.scrollTop = log.scrollHeight;
 	},
 	
 	complete: function() {
-		console.debug('Update complete!');
+		Update.debug('Update complete!');
 		Update.setProgress({'action': 'complete'});
 		
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
-			setTimeout(function() {
-				location.href = file.toURL();				
-			}, 100);
+			if (!Update.isError) {
+				setTimeout(function() {
+	//				location.href = file.toURL();				
+				}, 100);
+			}
 		}, Update.error);
 	},
 	
@@ -205,7 +275,7 @@ var Update = {
 	},
 
 	update: function() {
-		console.debug('Updating...');
+		Update.debug('Updating...');
 		
 		var forward = function(file) {
 			Update.setProgress({'action': 'file'});
@@ -223,7 +293,7 @@ var Update = {
 	
 	getFiles: function(files, fn) {
 		if (!files.length) {
-			console.debug('Finished downloading files.');
+			Update.debug('Finished downloading files.');
 			fn();
 			return;
 		}
@@ -235,9 +305,9 @@ var Update = {
 	},
 	
 	getFile: function(remote, local, fn) {
-		console.debug('Downloading: ' + remote);
-		
-		//local = local.replace(/^cockpit\//,'');
+		Update.debug('Downloading: ' + remote);
+
+		local = local.replace(/^assets\/cockpit\//,'assets/');
 
 		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, remote, fn);
@@ -263,10 +333,10 @@ var Update = {
 			};
 
 			if (path.length > 0) {
-				console.debug('Creating directory: ' + name);
+				Update.debug('Creating directory: ' + name);
 				Update.fs.root.getDirectory(name, opts, suc, f);
 			} else {
-				console.debug('Creating file: ' + name);
+				Update.debug('Creating file: ' + name);
 				Update.fs.root.getFile(name, opts, suc, f);
 			}
 		}

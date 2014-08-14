@@ -11,12 +11,27 @@
 		<meta name="msapplication-tap-highlight" content="no" />
 		<title>Cockpit</title>
 	</head>
-	<body>
-		<section class="container">
-			<div class="progress">
-				<div class="progress-bar animated"></div>
-			</div>
-		</section>
+	<body bgcolor="#202228">
+
+			<section class="container">
+				<div class="status-connecting" id="status">
+					<h1 class="message-connecting">no net. checking connection...</h1>
+					<h1 class="message-loading">prepping for flight...</h1>
+					<h1 class="message-error">Houston, we have a problem.</h1>
+				</div>
+				<div class="progress">
+					<div class="progress-bar animated"></div>
+				</div>
+				<div class="log"></div>
+				
+
+				<button class="button orange">Try again</button>
+
+				<div class="help">
+					If you continue experiencing problems, please copy this log and email it to <a href="mailto:dev@crunchbutton.com" target="_blank">dev@crunchbutton.com</a>
+				</div>
+			</section>
+
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type="text/javascript" src="index.js"></script>
 	</body>
