@@ -19,6 +19,18 @@
                         {
                             "xml": "<feature name=\"FileTransfer\"><param name=\"ios-package\" value=\"CDVFileTransfer\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"StatusBar\"><param name=\"ios-package\" onload=\"true\" value=\"CDVStatusBar\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<preference name=\"StatusBarOverlaysWebView\" value=\"false\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<preference name=\"StatusBarBackgroundColor\" value=\"#000000\" />",
+                            "count": 1
                         }
                     ]
                 }
@@ -49,6 +61,9 @@
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         },
         "org.apache.cordova.file-transfer": {
+            "PACKAGE_NAME": "com.crunchbutton.cockpit"
+        },
+        "com.phonegap.plugin.statusbar": {
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         }
     },
