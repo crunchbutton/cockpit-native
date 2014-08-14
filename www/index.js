@@ -359,7 +359,7 @@ var Update = {
 	},
 
 	update: function() {
-		if (Update.build.local.version && !Update.build.remote.force) {
+		if (Update.build.local && Update.build.local.version && !Update.build.remote.force) {
 			Update.debug('<b>This update is non mandatory</b>');
 			document.getElementById('skip').className = 'allowed';
 		} else {
