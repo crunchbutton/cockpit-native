@@ -3,8 +3,8 @@ var Update = {
 	version: '0.0.0',
 	fs: null,
 	build: {},
-//	server: 'http://cockpit3.localhost/',
-	server: 'http://beta.cockpit.la/',
+	server: 'http://cockpit3.localhost/',
+//	server: 'http://beta.cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: false,
@@ -19,9 +19,9 @@ var Update = {
 		getAppVersion(function(version) {
 			Update.debug('Native App Version: ' + version);
 			Update.version = version;
+			
+			Update.start();
 		});
-
-		Update.start();
 	},
 	
 	restart: function() {
@@ -45,18 +45,25 @@ var Update = {
 	},
 	
 	start: function() {
+	
+		var repeatCheck;
 
 		var error = function() {
-			Update.error('Failed allocating space on device.', arguments);
+			Update.error('Failed allocating space', arguments);
 		};
 
 		var success = function(fs) {
-			Update.debug('Successfully allocated space on device.');
+			Update.debug('Successfully allocated space');
 			Update.fs = fs;
 			Update.checkBuild();
 		};
 		
 		var checkAndRun = function() {
+			if (Update.running) {
+				clearInterval(repeatCheck);
+				return;
+			}
+
 			Update.debug('Checking connection...');
 			if (Update.checkConnection()) {
 				Update.debug('Connection Good!');
@@ -72,17 +79,28 @@ var Update = {
 				Update.setProgress({'action': 'start'});
 				window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
 			} else {
-				document.getElementById('status').className = 'status-connecting';
 				Update.error('No connection.');
+				document.getElementById('status').className = 'status-connecting';
 			}
 		};
 
-		var repeatCheck = setInterval(function() {
+		repeatCheck = setInterval(function() {
 			checkAndRun();
-		}, 500);
+		}, 2000);
+		checkAndRun();
+		
+		Update.forever();
+	},
+	
+	forever: function() {
+		setTimeout(function() {
+			Update.error('Taking too long. Restarting....');
+			location.href = location.href;
+		},60000);
 	},
 	
 	checkConnection: function() {
+		Update.debug('Network status: ' + navigator.connection.type);
 		var status = false;
 		switch (navigator.connection.type) {
 			case Connection.ETHERNET:
@@ -264,6 +282,7 @@ var Update = {
 		Update.log('error', txt);
 
 		if (Update.running) {
+			Update.running = false;
 			Update.isError = true;
 			document.getElementById('status').className = 'status-error';
 		}
@@ -285,23 +304,31 @@ var Update = {
 		}
 	},
 	
-	complete: function() {
-		Update.good('Update complete!');
-		Update.setProgress({'action': 'complete'});
-		
+	skip: function() {
+		Update.go(true, 0);
+	},
+	
+	go: function(go, wait) {
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
 			if (!Update.isError) {
 				document.getElementById('status').className = 'status-success';
-
-				if (Update.forward) {
+				if (go) {
 					setTimeout(function() {
-						location.href = file.toURL();				
-					}, 220);
+						location.href = file.toURL();
+					}, wait);
 				}
 			}
 		}, function() {
-			Update.error('Failed opening cokpit.phtml', arguments);
+			Update.error('Failed opening cockpit.phtml', arguments);
 		});
+	},
+	
+	complete: function() {
+		Update.running = false;
+		Update.good('Update complete!');
+		Update.setProgress({'action': 'complete'});
+		
+		Update.go(Update.forward, 220);
 	},
 	
 	digestIndex: function(file) {
@@ -332,6 +359,14 @@ var Update = {
 	},
 
 	update: function() {
+		if (Update.build.local.version && !Update.build.remote.force) {
+			Update.debug('<b>This update is non mandatory</b>');
+			document.getElementById('skip').className = 'allowed';
+		} else {
+			Update.debug('<b>This update is mandatory</b>');
+			document.getElementById('skip').className = 'not-allowed';
+		}
+
 		Update.debug('Updating...');
 		Update.debug('Updating to version: ' + Update.build.remote.version);
 		

@@ -156,7 +156,43 @@ button, :focus {
 	line-height: 1.5em;
 }
 
+.status-connecting #skip a,
+.status-error #skip a,
+.status-retry #skip a,
+.status-success #skip a {
+	opacity: 0 !important;
+}
 
+#skip {
+	position: absolute;
+	bottom: 2em;
+	text-align: center;
+	box-sizing: border-box;
+	width: 100%;
+	left: 0;
+	right: 0;
+}
+
+#skip a {
+	display: none;
+	opacity: 0;
+	-webkit-transform: translateZ(0);
+	-webkit-transition: 0.3s ease-in-out;
+	-moz-transition: 0.3s ease-in-out;
+	-o-transition: 0.3s ease-in-out;
+	transition: 0.3s ease-in-out;
+	-webkit-transition-property: opacity;
+	-moz-transition-property: opacity;
+	-o-transition-property: opacity;
+	transition-property: opacity;
+	text-transform:uppercase;
+	font-weight: bold;
+}
+
+#skip.allowed a {
+	opacity: 1;
+	display: inline-block;
+}
 
 
 
