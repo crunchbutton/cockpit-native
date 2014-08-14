@@ -126,7 +126,7 @@ var Update = {
 						
 						Update.setProgress({'action': 'config'});
 
-						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version) {
+						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version || Update.build.remote.force) {
 							Update.update();
 						} else {
 							Update.complete();
