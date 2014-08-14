@@ -12,11 +12,12 @@
 		<title>Cockpit</title>
 	</head>
 	<body bgcolor="#202228">
-
+		<div id="status" class="status-connecting">
 			<section class="container">
-				<div class="status-connecting" id="status">
-					<h1 class="message-connecting">no net. checking connection...</h1>
+				<div class="status">
+					<h1 class="message-connecting">offline, trying again...</h1>
 					<h1 class="message-loading">prepping for flight...</h1>
+					<h1 class="message-success">all set!</h1>
 					<h1 class="message-error">Houston, we have a problem.</h1>
 				</div>
 				<div class="progress">
@@ -24,13 +25,14 @@
 				</div>
 				<div class="log"></div>
 				
-
-				<button class="button orange">Try again</button>
-
-				<div class="help">
-					If you continue experiencing problems, please copy this log and email it to <a href="mailto:dev@crunchbutton.com" target="_blank">dev@crunchbutton.com</a>
+				<div class="error-info">
+					<button class="button orange" onmousedown="Update.restart()">Try again</button>
+					<div class="help">
+						If you continue experiencing problems, please copy this log and email it to <a href="mailto:dev@crunchbutton.com" target="_blank">dev@crunchbutton.com</a>
+					</div>
 				</div>
 			</section>
+		</div>
 
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type="text/javascript" src="index.js"></script>

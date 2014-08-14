@@ -45,7 +45,7 @@ table {
 
 
 a {
-	color: #d74924;
+	color: #e45b37;
 	text-decoration: underline;
 }
 
@@ -95,7 +95,7 @@ button, :focus {
 	-webkit-overflow-scrolling: touch;
 	overflow-x: hidden;
 	margin-top: 2em;
-	margin-bottom: 1em;
+	margin-bottom: 4em;
 	word-break:break-all;
 }
 
@@ -117,19 +117,36 @@ button, :focus {
 .log .error {
 	color: #ea4444;
 }
+.log .good {
+	color: #5ae55d;
+}
 
 #status {
 	margin-bottom: 1em;
 }
 
-.status-connecting h1:not(.message-connecting) {
+.status-connecting h1:not(.message-connecting),
+.status-loading h1:not(.message-loading),
+.status-error h1:not(.message-error),
+.status-success h1:not(.message-success) {
 	display: none;
 }
-.status-loading h1:not(.message-loading) {
-	display: none;	
+
+.error-info {
+	opacity: 0;
+	-webkit-transform: translateZ(0);
+	-webkit-transition: 0.3s ease-in-out;
+	-moz-transition: 0.3s ease-in-out;
+	-o-transition: 0.3s ease-in-out;
+	transition: 0.3s ease-in-out;
+	-webkit-transition-property: opacity;
+	-moz-transition-property: opacity;
+	-o-transition-property: opacity;
+	transition-property: opacity;
 }
-.status-error h1:not(.message-error) {
-	display: none;
+
+.status-error .error-info {
+	opacity: 1;
 }
 
 
@@ -151,7 +168,7 @@ body {
 
 .container {
 	margin: 0 auto;
-	padding-top: 40%;
+	padding-top: 30%;
 	width: 260px;
 	text-align: center;
 }
@@ -218,6 +235,7 @@ h1 {
 	font-size: 1.2em;
 	font-weight: bold;
 	text-transform:uppercase;
+	margin-bottom: 1em;
 }
 
 

@@ -12,6 +12,7 @@ var Update = {
 	queue: 0,
 	running: false,
 	isError: false,
+	started: false,
 
 	init: function() {
 		getAppVersion(function(version) {
@@ -20,6 +21,26 @@ var Update = {
 		});
 
 		Update.start();
+	},
+	
+	restart: function() {
+		if (Update.started) {
+			return;
+		}
+		Update.started = true;
+		
+		document.getElementById('status').className = 'status-connecting';
+
+		document.querySelector('.log').innerHTML = '';
+		Update.debug('Native App Version: ' + Update.version);
+		Update.debug('Trying again...');
+		Update.queue = Update.progress = 0;
+
+		Update.displayProgress();
+		
+		setTimeout(function() {
+			Update.start();
+		},100);
 	},
 	
 	start: function() {
@@ -35,15 +56,24 @@ var Update = {
 		};
 		
 		var checkAndRun = function() {
+			document.getElementById('status').className = 'status-connecting';
+
+			Update.debug('Checking connection...');
 			if (Update.checkConnection()) {
+				Update.debug('Connection Good!');
+				document.getElementById('status').className = 'status-loading';
+
 				// start up
 				Update.isError = false;
 				Update.queue = Update.progress = 0;
 				
 				clearInterval(repeatCheck);
 				Update.running = true;
+				Update.started = false;
 				Update.setProgress({'action': 'start'});
 				window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, error);
+			} else {
+				Update.error('No connection.');
 			}
 		};
 
@@ -136,7 +166,7 @@ var Update = {
 		};
 		
 		var fail = function() {
-			console.error('Failed to read file');
+			Update.error('Failed to read file', arguments);
 			fn(null);
 		};
 
@@ -149,15 +179,13 @@ var Update = {
 				fn();
 			};
 			writer.onerror = function() {
-				console.error('Failed to write file');
-				Update.error();
+				Update.error('Failed to write file', arguments);
 			};
 			writer.write(data);
 		};
 
-		var fail = function(evt) {
-			console.error('Failed to access file');
-			Update.error();
+		var fail = function() {
+			Update.error('Failed to access file', arguments);
 		};
 
 		entry.createWriter(win, fail);
@@ -192,13 +220,17 @@ var Update = {
 	updateBuild: function(fn) {
 		Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, 'api/build', fn);
-		}, Update.error);	
+		}, function() {
+			Update.error('Failed accessing build.json for writing', arguments);
+		});
 	},
 	
 	currentBuild: function(fn) {
 		Update.fs.root.getFile('build.json', {create: true, exclusive: false}, function(file) {
 			fn(file);
-		}, Update.error);
+		}, function() {
+			Update.error('Failed reading current build.json', arguments);
+		});
 	},
 	
 	gotFileEntry: function(fileEntry, url, fn) {
@@ -206,7 +238,9 @@ var Update = {
 		fileEntry.remove();
 		fileTransfer.download(Update.server + url, fileEntry.toURL(), function(file) {
 			Update.downloadComplete(file, fn);
-		}, Update.error);
+		}, function() {
+			Update.error('Failed writing download: ' + fileEntry.name, arguments);
+		});
 	},
 	
 	downloadComplete:function(file, fn) {
@@ -218,12 +252,18 @@ var Update = {
 		console.debug(arguments);
 		Update.log('debug', txt);
 	},
+	good: function(txt) {
+		console.log(arguments);
+		Update.log('good', txt);
+	},
 	error: function(txt) {
 		console.error(arguments);
 		Update.log('error', txt);
-		Update.isError = true;
-		
-		document.getElementById('status').className = 'status-error';
+
+		if (Update.running) {
+			Update.isError = true;
+			document.getElementById('status').className = 'status-error';
+		}
 	},
 	log: function(type, txt) {
 		var message = document.createElement('div');
@@ -236,16 +276,20 @@ var Update = {
 	},
 	
 	complete: function() {
-		Update.debug('Update complete!');
+		Update.good('Update complete!');
 		Update.setProgress({'action': 'complete'});
 		
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
 			if (!Update.isError) {
+				document.getElementById('status').className = 'status-success';
+			
 				setTimeout(function() {
-	//				location.href = file.toURL();				
+					location.href = file.toURL();				
 				}, 100);
 			}
-		}, Update.error);
+		}, function() {
+			Update.error('Failed opening cokpit.phtml', arguments);
+		});
 	},
 	
 	digestIndex: function(file) {
@@ -264,9 +308,8 @@ var Update = {
 		};
 		
 		Update.read(file, function(data) {
-
 			if (!data) {
-				Update.error();
+				Update.error('Failed opening file for replacement');
 			} else {
 				replace(data);
 			}
@@ -276,6 +319,7 @@ var Update = {
 
 	update: function() {
 		Update.debug('Updating...');
+		Update.debug('Remove version: ' + Update.build.remote.version);
 		
 		var forward = function(file) {
 			Update.setProgress({'action': 'file'});
@@ -311,7 +355,9 @@ var Update = {
 
 		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
 			Update.gotFileEntry(fileEntry, remote, fn);
-		}, Update.error);
+		}, function() {
+			Update.error('Failed creating file: ' + local, arguments);
+		});
 	},
 	
 	recursiveGetFile: function(local, opts, success, fail) {
