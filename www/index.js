@@ -7,7 +7,7 @@ var Update = {
 	server: 'http://beta.cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
-	force: true,
+	force: false,
 	progress: 0,
 	queue: 0,
 
