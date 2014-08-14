@@ -12,7 +12,7 @@
  
 
 $createPath = 'www/res/'; 									// path to generate files to
-$projectPath = 'platforms/ios/Crunchbutton/Resources/';		// path of ios project
+//$projectPath = 'platforms/ios/Crunchbutton/Resources/';		// path of ios project
 
 $images = [
 	'icons' => [
@@ -58,8 +58,8 @@ $images = [
 		'offset' => function($size) {
 			return '-'.round((($size[0] + $size[1]) / 2) * .05);
 		},
-		'color' => 'fc9a6b',
-		'image' => 'www_source/res/bg.png'
+		'color' => '202228',
+		'image' => 'splash.png'
 	],
 	'backgrounds-retina' => [
 		'items' => [
@@ -76,8 +76,8 @@ $images = [
 		'offset' => function($size) {
 			return '-'.round((($size[0] + $size[1]) / 2) * .05);
 		},
-		'color' => 'fc9a6b',
-		'image' => 'www_source/res/bg.png'
+		'color' => '202228',
+		'image' => 'splash.png'
 	]
 ];
 

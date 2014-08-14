@@ -116,7 +116,9 @@ var Update = {
 		Update.currentBuild(function(build) {
 
 			Update.read(build, function(res) {
-				Update.build.local = JSON.parse(res);
+				if (res) {
+					Update.build.local = JSON.parse(res);
+				}
 
 				Update.updateBuild(function(build) {
 					Update.read(build, function(res) {
@@ -169,7 +171,6 @@ var Update = {
 		console.debug('Update complete!');
 		Update.setProgress({'action': 'complete'});
 		
-		
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
 			setTimeout(function() {
 				location.href = file.toURL();				
@@ -178,8 +179,6 @@ var Update = {
 	},
 	
 	digestIndex: function(file) {
-		//<script src="//
-		
 		var complete = function() {
 			Update.setProgress({'action': 'file'});
 			Update.complete();
