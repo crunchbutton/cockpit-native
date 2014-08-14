@@ -93,13 +93,14 @@ body {
 
 .container {
 	margin: 0 auto;
-	padding-top: 250px;
-	width: 300px;
+	padding-top: 270px;
+	width: 260px;
 	text-align: center;
 }
 .container .progress {
 	margin: 0 auto;
-	width: 290px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .progress {
@@ -114,16 +115,19 @@ body {
 	position: relative;
 	height: 16px;
 	border-radius: 4px;
-	-webkit-transition: 0.4s ease-in-out;
-	-moz-transition: 0.4s ease-in-out;
-	-o-transition: 0.4s ease-in-out;
-	transition: 0.4s ease-in-out;
+	-webkit-box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
+	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
+	box-sizing: border-box;
+}
+.progress-bar.animated {
+	-webkit-transition: 0.1s ease-in-out;
+	-moz-transition: 0.1s ease-in-out;
+	-o-transition: 0.1s ease-in-out;
+	transition: 0.1s ease-in-out;
 	-webkit-transition-property: width, background-color;
 	-moz-transition-property: width, background-color;
 	-o-transition-property: width, background-color;
 	transition-property: width, background-color;
-	-webkit-box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
-	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.1);
 }
 .progress-bar:before, .progress-bar:after {
 	content: '';

@@ -3,7 +3,8 @@ var Update = {
 	version: '0.5.0',
 	fs: null,
 	build: {},
-	server: 'http://cockpit3.localhost/',
+//	server: 'http://cockpit3.localhost/',
+	server: 'http://beta.cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: true,
@@ -37,6 +38,10 @@ var Update = {
 		}
 		
 		if (args.action == 'complete') {
+			Update.progress = 100;
+		}
+		
+		if (Update.progress > 100) {
 			Update.progress = 100;
 		}
 		
@@ -166,7 +171,9 @@ var Update = {
 		
 		
 		Update.fs.root.getFile('cockpit.html', {create: true, exclusive: false}, function(file) {
-			location.href = file.toURL();
+			setTimeout(function() {
+				location.href = file.toURL();				
+			}, 100);
 		}, Update.error);
 	},
 	

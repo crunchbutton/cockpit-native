@@ -1,21 +1,19 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.crunchbutton.cockpit" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Cockpit</name>
-    <description>
-        Crunchbutton's Cockpit
-    </description>
-    <author email="dev@crunchbutton.com" href="http://crunchbutton.com">
-        Crunchbutton, Devin Smith
-    </author>
-    <icon src="icon.png" />
-    <content src="index.html" />
-    
-    <!preference name="DisallowOverscroll" value="true" />
-    <preference name="webviewbounce"              value="false" />
-    <!preference name="BackgroundColor" value="0xff202228" />
-    <!preference name="HideKeyboardFormAccessoryBar" value="true" />
-    
-    <preference name="ios-statusbarstyle"         value="black-opaque" />
-    
-    <access origin="*" />
+	<name>Cockpit</name>
+	<description>
+		Crunchbutton's Cockpit
+	</description>
+	<author email="dev@crunchbutton.com" href="http://crunchbutton.com">
+		Crunchbutton, Devin Smith
+	</author>
+	<icon src="icon.png" />
+	<splash src="splash.png" />
+	<content src="index.html" />
+
+	<preference name="DisallowOverscroll" value="true" />
+	<preference name="BackgroundColor" value="0xff202228" />
+	<preference name="HideKeyboardFormAccessoryBar" value="true" />
+
+	<access origin="*" />
 </widget>
