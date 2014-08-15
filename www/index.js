@@ -315,7 +315,9 @@ var Update = {
 				document.getElementById('status').className = 'status-success';
 				if (go) {
 					setTimeout(function() {
-						location.href = file.toURL();
+//						location.href = file.toURL();
+						location.href = 'wrap.html#' + file.toURL();
+
 					}, wait);
 				}
 			}

@@ -298,3 +298,15 @@ h1 {
 .button:active {
 	opacity: .8;
 }
+
+.frame {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	border: 0;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: #202228;
+}
