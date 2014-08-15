@@ -171,6 +171,7 @@ button, :focus {
 	width: 100%;
 	left: 0;
 	right: 0;
+	display: none;
 }
 
 #skip a {
