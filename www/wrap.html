@@ -15,13 +15,23 @@
 	<body bgcolor="#202228">
 		<script type="text/javascript" src="cordova.js"></script>
 		<script>
+		
 		document.addEventListener('deviceready', function() {
+
 			var loc = location.hash.substr(1);
 			var frame = document.createElement('iframe');
+
 			frame.src = loc;
 			frame.className = 'frame';
 			frame.allowTransparency = 'true';
 			document.body.appendChild(frame);
+
+			window.pushnotification = function(notification) {
+				var e = new CustomEvent('pushnotification');
+				e.msg = notification;
+				frame.contentWindow.document.dispatchEvent(e);
+			};
+
 		}, false);
 		</script>
 	</body>
