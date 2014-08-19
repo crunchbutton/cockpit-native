@@ -49,7 +49,11 @@
                             "count": 1
                         },
                         {
-                            "xml": "<feature name=\"TapToScroll\"><param name=\"ios-package\" value=\"TapToScroll\" /></feature>",
+                            "xml": "<feature name=\"InAppBrowser\"><param name=\"ios-package\" value=\"CDVInAppBrowser\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Media\"><param name=\"ios-package\" value=\"CDVSound\" /></feature>",
                             "count": 1
                         }
                     ]
@@ -87,7 +91,12 @@
                             "count": 1
                         }
                     ],
-                    "CoreGraphics.framework": [],
+                    "CoreGraphics.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
                     "AudioToolbox.framework": [
                         {
                             "xml": "true",
@@ -123,7 +132,10 @@
         "org.apache.cordova.vibration": {
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         },
-        "com.phonegap.TapToScroll": {
+        "org.apache.cordova.inappbrowser": {
+            "PACKAGE_NAME": "com.crunchbutton.cockpit"
+        },
+        "org.apache.cordova.media": {
             "PACKAGE_NAME": "com.crunchbutton.cockpit"
         }
     },
