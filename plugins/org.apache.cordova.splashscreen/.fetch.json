@@ -1,1 +1,1 @@
-{"source":{"type":"local","path":"/Users/arzynik/.plugman/cache/org.apache.cordova.splashscreen/0.3.2/package"}}
+{"source":{"type":"git","url":"https://github.com/apache/cordova-plugin-splashscreen","subdir":"."}}

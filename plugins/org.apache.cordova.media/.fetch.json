@@ -1,1 +1,1 @@
-{"source":{"type":"local","path":"/Users/arzynik/.plugman/cache/org.apache.cordova.media/0.2.12/package"}}
+{"source":{"type":"git","url":"https://github.com/apache/cordova-plugin-media","subdir":"."}}

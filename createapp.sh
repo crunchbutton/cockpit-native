@@ -4,12 +4,21 @@
 
 
 phonegap create cockpit com.crunchbutton.cockpit Cockpit
+cd cockpit
 
-phonegap local plugin add org.apache.cordova.file-transfer
-phonegap local plugin add org.apache.cordova.network-information
-phonegap local plugin add org.apache.cordova.media
-phonegap local plugin add org.apache.cordova.vibration
-phonegap local plugin add org.apache.cordova.splashscreen
+#phonegap local plugin add org.apache.cordova.file-transfer
+#phonegap local plugin add org.apache.cordova.network-information
+#phonegap local plugin add org.apache.cordova.media
+#phonegap local plugin add org.apache.cordova.vibration
+#phonegap local plugin add org.apache.cordova.splashscreen
+
+
+phonegap local plugin add https://github.com/apache/cordova-plugin-geolocation
+phonegap local plugin add https://github.com/apache/cordova-plugin-file-transfer
+phonegap local plugin add https://github.com/apache/cordova-plugin-network-information
+phonegap local plugin add https://github.com/apache/cordova-plugin-media
+phonegap local plugin add https://github.com/apache/cordova-plugin-splashscreen
+
 
 phonegap local plugin add https://github.com/phonegap-build/PushPlugin
 #phonegap local plugin add https://github.com/phonegap-build/StatusBarPlugin
@@ -23,6 +32,8 @@ phonegap local plugin add https://github.com/christocracy/cordova-plugin-backgro
 #org.apache.cordova.dialogs
 
 #org.apache.cordova.inappbrowser
+
+phonegap build ios
 
 
 
