@@ -4,8 +4,8 @@ var Update = {
 	fs: null,
 	build: {},
 //	server: 'http://cockpit3.localhost/',
-//	server: 'http://beta.cockpit.la/',
-	server: 'http://cockpit.la/',
+//	server: 'https://beta.cockpit.la/',
+	server: 'https://cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: true,
@@ -17,6 +17,10 @@ var Update = {
 	started: false,
 
 	init: function() {
+		setTimeout(function() {
+			navigator.splashscreen.hide();
+		}, 100);
+
 		getAppVersion(function(version) {
 			Update.debug('Native App Version: ' + version);
 			Update.version = version;
@@ -358,7 +362,6 @@ var Update = {
 				replace(data);
 			}
 		});
-
 	},
 
 	update: function() {

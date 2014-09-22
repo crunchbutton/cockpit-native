@@ -23,7 +23,7 @@
 			});
 			
 			document.addEventListener('deviceready', function() {
-				parent.StatusBar.styleBlackTranslucent();
+				//parent.StatusBar.styleBlackTranslucent();
 	
 				var loc = location.hash.substr(1);
 				frame = document.createElement('iframe');
@@ -31,6 +31,12 @@
 				frame.src = loc;
 				frame.className = 'frame';
 				frame.allowTransparency = 'true';
+				frame.onload = function() {
+					var self = this;
+					setTimeout(function() {
+						self.style.visibility = 'visible';
+					},100);
+				};
 				document.body.appendChild(frame);
 	
 				window.pushnotification = function(notification) {

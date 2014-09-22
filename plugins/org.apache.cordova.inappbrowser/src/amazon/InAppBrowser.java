@@ -19,15 +19,12 @@
 package org.apache.cordova.inappbrowser;
 
 import android.annotation.SuppressLint;
-import org.apache.cordova.inappbrowser.InAppBrowserDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -85,7 +82,7 @@ public class InAppBrowser extends CordovaPlugin {
     private static final String CLEAR_ALL_CACHE = "clearcache";
     private static final String CLEAR_SESSION_CACHE = "clearsessioncache";
 
-    private InAppBrowserDialog dialog;
+    private Dialog dialog;
     private AmazonWebView inAppWebView;
     private EditText edittext;
     private CallbackContext callbackContext;
@@ -259,16 +256,11 @@ public class InAppBrowser extends CordovaPlugin {
             scriptToInject = source;
         }
         final String finalScriptToInject = scriptToInject;
+        // This action will have the side-effect of blurring the currently focused element
         this.cordova.getActivity().runOnUiThread(new Runnable() {
-            @SuppressLint("NewApi")
             @Override
             public void run() {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                    // This action will have the side-effect of blurring the currently focused element
-                    inAppWebView.loadUrl("javascript:" + finalScriptToInject);
-                } /*else {
-                    inAppWebView.evaluateJavascript(finalScriptToInject, null);
-                }*/
+                inAppWebView.loadUrl("javascript:" + finalScriptToInject);
             }
         });
     }
@@ -313,14 +305,7 @@ public class InAppBrowser extends CordovaPlugin {
         try {
             Intent intent = null;
             intent = new Intent(Intent.ACTION_VIEW);
-            // Omitting the MIME type for file: URLs causes "No Activity found to handle Intent".
-            // Adding the MIME type to http: URLs causes them to not be handled by the downloader.
-            Uri uri = Uri.parse(url);
-            if ("file".equals(uri.getScheme())) {
-                intent.setDataAndType(uri, webView.getResourceApi().getMimeType(uri));
-            } else {
-                intent.setData(uri);
-            }
+            intent.setData(Uri.parse(url));
             this.cordova.getActivity().startActivity(intent);
             return "";
         } catch (android.content.ActivityNotFoundException e) {
@@ -333,38 +318,16 @@ public class InAppBrowser extends CordovaPlugin {
      * Closes the dialog
      */
     public void closeDialog() {
-        final AmazonWebView childView = this.inAppWebView;
-        // The JS protects against multiple calls, so this should happen only when
-        // closeDialog() is called by other native code.
-        if (childView == null) {
-            return;
-        }
         this.cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
             public void run() {
-                childView.setWebViewClient(new AmazonWebViewClient() {
-                    // NB: wait for about:blank before dismissing
-                    public void onPageFinished(AmazonWebView view, String url) {
-                        if (dialog != null) {
-                            dialog.dismiss();
-                        }
-                    }
-                });
-                // NB: From SDK 19: "If you call methods on WebView from any thread
-                // other than your app's UI thread, it can cause unexpected results."
-                // http://developer.android.com/guide/webapps/migrating.html#Threads
-                childView.loadUrl("about:blank");
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
         });
-        
-        try {
-            JSONObject obj = new JSONObject();
-            obj.put("type", EXIT_EVENT);
-            sendUpdate(obj, false);
-        } catch (JSONException ex) {
-            Log.d(LOG_TAG, "Should never happen");
-        }
+
     }
+
     /**
      * Checks to see if it is possible to go back one page in history, then does so.
      */
@@ -422,10 +385,6 @@ public class InAppBrowser extends CordovaPlugin {
         return this.showLocationBar;
     }
 
-    private InAppBrowser getInAppBrowser(){
-        return this;
-    }
-
     /**
      * Display a new browser with the specified URL.
      *
@@ -476,11 +435,15 @@ public class InAppBrowser extends CordovaPlugin {
 
             public void run() {
                 // Let's create the main dialog
-                dialog = new InAppBrowserDialog(cordova.getActivity(), android.R.style.Theme_NoTitleBar);
+                dialog = new Dialog(cordova.getActivity(), android.R.style.Theme_NoTitleBar);
                 dialog.getWindow().getAttributes().windowAnimations = android.R.style.Animation_Dialog;
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setCancelable(true);
-                dialog.setInAppBroswer(getInAppBrowser());
+                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        public void onDismiss(DialogInterface dialog) {
+                            closeDialog();
+                        }
+                });
 
                 // Main container layout
                 LinearLayout main = new LinearLayout(cordova.getActivity());
@@ -509,21 +472,7 @@ public class InAppBrowser extends CordovaPlugin {
                 back.setLayoutParams(backLayoutParams);
                 back.setContentDescription("Back Button");
                 back.setId(2);
-                /*
-                 back.setText("<");
-                 */
-                Resources activityRes = cordova.getActivity().getResources();
-                int backResId = activityRes.getIdentifier("ic_action_previous_item", "drawable", cordova.getActivity().getPackageName());
-                Drawable backIcon = activityRes.getDrawable(backResId);
-                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN)
-                {
-                    back.setBackgroundDrawable(backIcon);
-                }
-                else
-                {
-                    back.setBackground(backIcon);
-                }
-
+                back.setText("<");
                 back.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         goBack();
@@ -537,17 +486,7 @@ public class InAppBrowser extends CordovaPlugin {
                 forward.setLayoutParams(forwardLayoutParams);
                 forward.setContentDescription("Forward Button");
                 forward.setId(3);
-                //forward.setText(">");
-                int fwdResId = activityRes.getIdentifier("ic_action_next_item", "drawable", cordova.getActivity().getPackageName());
-                Drawable fwdIcon = activityRes.getDrawable(fwdResId);
-                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN)
-                {
-                    forward.setBackgroundDrawable(fwdIcon);
-                }
-                else
-                {
-                    forward.setBackground(fwdIcon);
-                }
+                forward.setText(">");
                 forward.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         goForward();
@@ -584,17 +523,7 @@ public class InAppBrowser extends CordovaPlugin {
                 close.setLayoutParams(closeLayoutParams);
                 forward.setContentDescription("Close Button");
                 close.setId(5);
-                //close.setText(buttonLabel);
-                int closeResId = activityRes.getIdentifier("ic_action_remove", "drawable", cordova.getActivity().getPackageName());
-                Drawable closeIcon = activityRes.getDrawable(closeResId);
-                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN)
-                {
-                    close.setBackgroundDrawable(closeIcon);
-                }
-                else
-                {
-                    close.setBackground(closeIcon);
-                }
+                close.setText(buttonLabel);
                 close.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         closeDialog();

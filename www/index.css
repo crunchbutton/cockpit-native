@@ -309,4 +309,5 @@ h1 {
 	left: 0;
 	right: 0;
 	background-color: #202228;
+	visibility: hidden;
 }
