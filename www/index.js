@@ -8,7 +8,7 @@ var Update = {
 //	server: 'https://cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
-	force: true,
+	force: false,
 	forward: true,
 	progress: 0,
 	queue: 0,
@@ -230,6 +230,9 @@ var Update = {
 						Update.build.remote = JSON.parse(res);
 						
 						Update.setProgress({'action': 'config'});
+						
+						Update.debug('Remote version: ' + Update.build.remote.version);
+						Update.debug('Local version: ' + Update.build.local.version);
 
 						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version || Update.build.remote.force) {
 							Update.update();
@@ -319,7 +322,6 @@ var Update = {
 				document.getElementById('status').className = 'status-success';
 				if (go) {
 					setTimeout(function() {
-//						location.href = file.toURL();
 						location.href = 'wrap.html#' + file.toURL();
 
 					}, wait);

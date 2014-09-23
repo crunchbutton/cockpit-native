@@ -97,6 +97,8 @@ button, :focus {
 	margin-top: 2em;
 	margin-bottom: 4em;
 	word-break:break-all;
+	
+	opacity: 0;
 }
 
 .log div {
@@ -145,11 +147,6 @@ button, :focus {
 	-o-transition-property: opacity;
 	transition-property: opacity;
 }
-
-.status-error .error-info {
-	opacity: 1;
-}
-
 
 .help {
 	margin-top: 1em;
@@ -206,7 +203,7 @@ body {
 
 .container {
 	margin: 0 auto;
-	padding-top: 30%;
+	padding-top: 25%;
 	width: 260px;
 	text-align: center;
 }
@@ -310,4 +307,21 @@ h1 {
 	right: 0;
 	background-color: #202228;
 	visibility: hidden;
+}
+
+.logo {
+	height: 80px;
+	width: 80px;
+	background: url(logo.png);
+	background-size: 100%;
+	margin: 0 auto;
+	margin-bottom: 3em;
+}
+
+
+.status-error .error-info {
+	opacity: 1;
+}
+.status-error .log {
+	opacity: 1;
 }
