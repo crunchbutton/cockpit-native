@@ -18,6 +18,9 @@ phonegap local plugin add https://github.com/apache/cordova-plugin-file-transfer
 phonegap local plugin add https://github.com/apache/cordova-plugin-network-information
 phonegap local plugin add https://github.com/apache/cordova-plugin-media
 phonegap local plugin add https://github.com/apache/cordova-plugin-splashscreen
+phonegap local plugin add https://github.com/apache/cordova-plugin-vibration
+phonegap local plugin add https://github.com/apache/cordova-plugin-dialogs
+
 
 
 phonegap local plugin add https://github.com/phonegap-build/PushPlugin
