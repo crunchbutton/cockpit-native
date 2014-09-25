@@ -21,36 +21,37 @@
     BOOL isDebugging;
     BOOL enabled;
     BOOL isUpdatingLocation;
-    
+    BOOL stopOnTerminate;
+
     NSString *token;
     NSString *url;
     UIBackgroundTaskIdentifier bgTask;
     NSDate *lastBgTaskAt;
-    
+
     NSError *locationError;
-    
+
     BOOL isMoving;
-    
+
     NSNumber *maxBackgroundHours;
     CLLocationManager *locationManager;
     UILocalNotification *localNotification;
-    
+
     CDVLocationData *locationData;
     CLLocation *lastLocation;
     NSMutableArray *locationQueue;
-    
+
     NSDate *suspendedAt;
-    
+
     CLLocation *stationaryLocation;
     CLCircularRegion *stationaryRegion;
     NSInteger locationAcquisitionAttempts;
-    
+
     BOOL isAcquiringStationaryLocation;
     NSInteger maxStationaryLocationAttempts;
-    
+
     BOOL isAcquiringSpeed;
     NSInteger maxSpeedAcquistionAttempts;
-    
+
     NSInteger stationaryRadius;
     NSInteger distanceFilter;
     NSInteger locationTimeout;
@@ -66,10 +67,10 @@
     // background location cache, for when no network is detected.
     locationManager = [[CLLocationManager alloc] init];
     locationManager.delegate = self;
-    
+
     localNotification = [[UILocalNotification alloc] init];
     localNotification.timeZone = [NSTimeZone defaultTimeZone];
-    
+
     locationQueue = [[NSMutableArray alloc] init];
 
     isMoving = NO;
@@ -77,15 +78,17 @@
     stationaryLocation = nil;
     stationaryRegion = nil;
     isDebugging = NO;
-    
+    stopOnTerminate = NO;
+
     maxStationaryLocationAttempts   = 4;
     maxSpeedAcquistionAttempts      = 3;
-    
+
     bgTask = UIBackgroundTaskInvalid;
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onSuspend:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onResume:) name:UIApplicationWillEnterForegroundNotification object:nil];
+    
 }
 /**
  * configure plugin
@@ -99,9 +102,9 @@
 {
     // in iOS, we call to javascript for HTTP now so token and url should be @deprecated until Android calls out to javascript.
     // Params.
-    //    0       1       2           3               4                5               6            7           8                8               9
-    //[params, headers, url, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType]
-    
+    //    0       1       2           3               4                5               6            7           8                9               10               11
+    //[params, headers, url, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
+
     // UNUSED ANDROID VARS
     //params = [command.arguments objectAtIndex: 0];
     //headers = [command.arguments objectAtIndex: 1];
@@ -111,10 +114,11 @@
     locationTimeout     = [[command.arguments objectAtIndex: 5] intValue];
     desiredAccuracy     = [self decodeDesiredAccuracy:[[command.arguments objectAtIndex: 6] intValue]];
     isDebugging         = [[command.arguments objectAtIndex: 7] boolValue];
-    activityType        = [self decodeActivityType:[command.arguments objectAtIndex:9]];
-    
+    activityType        = [self decodeActivityType:[command.arguments objectAtIndex:10]];
+    stopOnTerminate     = [[command.arguments objectAtIndex: 11] boolValue];
+
     self.syncCallbackId = command.callbackId;
-    
+
     locationManager.activityType = activityType;
     locationManager.pausesLocationUpdatesAutomatically = YES;
     locationManager.distanceFilter = distanceFilter; // meters
@@ -129,6 +133,15 @@
     NSLog(@"  - desiredAccuracy: %ld", (long)desiredAccuracy);
     NSLog(@"  - activityType: %@", [command.arguments objectAtIndex:7]);
     NSLog(@"  - debug: %d", isDebugging);
+    NSLog(@"  - stopOnTerminate: %d", stopOnTerminate);
+    
+    // ios 8 requires permissions to send local-notifications
+    if (isDebugging) {
+        UIApplication *app = [UIApplication sharedApplication];
+        if ([app respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+            [app registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert|UIUserNotificationTypeBadge|UIUserNotificationTypeSound categories:nil]];
+        }
+    }
 }
 
 - (void) addStationaryRegionListener:(CDVInvokedUrlCommand*)command
@@ -158,7 +171,7 @@
     if ([locationQueue count] > 0) {
         NSMutableDictionary *data = [locationQueue lastObject];
         [locationQueue removeObject:data];
-        
+
         // Create a background-task and delegate to Javascript for syncing location
         bgTask = [self createBackgroundTask];
         [self.commandDelegate runInBackground:^{
@@ -170,7 +183,7 @@
 {
     NSLog(@"- CDVBackgroundGeoLocation setConfig");
     NSDictionary *config = [command.arguments objectAtIndex:0];
-    
+
     if (config[@"desiredAccuracy"]) {
         desiredAccuracy = [self decodeDesiredAccuracy:[config[@"desiredAccuracy"] floatValue]];
         NSLog(@"    desiredAccuracy: %@", config[@"desiredAccuracy"]);
@@ -187,7 +200,7 @@
         locationTimeout = [config[@"locationTimeout"] intValue];
         NSLog(@"    locationTimeout: %@", config[@"locationTimeout"]);
     }
-    
+
     CDVPluginResult* result = nil;
     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -234,9 +247,9 @@
 {
     enabled = YES;
     UIApplicationState state = [[UIApplication sharedApplication] applicationState];
-    
+
     NSLog(@"- CDVBackgroundGeoLocation start (background? %d)", state);
-    
+
     [locationManager startMonitoringSignificantLocationChanges];
     if (state == UIApplicationStateBackground) {
         [self setPace:isMoving];
@@ -253,7 +266,7 @@
     NSLog(@"- CDVBackgroundGeoLocation stop");
     enabled = NO;
     isMoving = NO;
-    
+
     [self stopUpdatingLocation];
     [locationManager stopMonitoringSignificantLocationChanges];
     if (stationaryRegion != nil) {
@@ -263,7 +276,7 @@
     CDVPluginResult* result = nil;
     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-    
+
 }
 
 /**
@@ -291,7 +304,7 @@
     isAcquiringSpeed                = NO;
     locationAcquisitionAttempts     = 0;
     stationaryLocation              = nil;
-    
+
     if (isDebugging) {
         AudioServicesPlaySystemSound (isMoving ? paceChangeYesSound : paceChangeNoSound);
     }
@@ -319,13 +332,13 @@
 - (void) getStationaryLocation:(CDVInvokedUrlCommand *)command
 {
     NSLog(@"- CDVBackgroundGeoLocation getStationaryLocation");
-    
+
     // Build a resultset for javascript callback.
     CDVPluginResult* result = nil;
-    
+
     if (stationaryLocation) {
         NSMutableDictionary *returnInfo = [self locationToHash:stationaryLocation];
-        
+
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnInfo];
     } else {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:NO];
@@ -337,7 +350,7 @@
 {
     NSMutableDictionary *returnInfo;
     returnInfo = [NSMutableDictionary dictionaryWithCapacity:10];
-    
+
     NSNumber* timestamp = [NSNumber numberWithDouble:([location.timestamp timeIntervalSince1970] * 1000)];
     [returnInfo setObject:timestamp forKey:@"timestamp"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.speed] forKey:@"speed"];
@@ -347,7 +360,7 @@
     [returnInfo setObject:[NSNumber numberWithDouble:location.altitude] forKey:@"altitude"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.coordinate.latitude] forKey:@"latitude"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.coordinate.longitude] forKey:@"longitude"];
-    
+
     return returnInfo;
 }
 /**
@@ -366,7 +379,7 @@
 {
     NSLog(@"- CDVBackgroundGeoLocation suspend (enabled? %d)", enabled);
     suspendedAt = [NSDate date];
-    
+
     if (enabled) {
         // Sample incoming stationary-location candidate:  Is it within the current stationary-region?  If not, I guess we're moving.
         if (!isMoving && stationaryRegion) {
@@ -393,31 +406,55 @@
     }
 }
 
+
+
+/**@
+ * Termination. Checks to see if it should turn off
+ */
+-(void) onAppTerminate
+{
+    NSLog(@"- CDVBackgroundGeoLocation appTerminate");
+    if (enabled && stopOnTerminate) {
+        NSLog(@"- CDVBackgroundGeoLocation stoping on terminate");
+
+        enabled = NO;
+        isMoving = NO;
+
+        [self stopUpdatingLocation];
+        [locationManager stopMonitoringSignificantLocationChanges];
+        if (stationaryRegion != nil) {
+            [locationManager stopMonitoringForRegion:stationaryRegion];
+            stationaryRegion = nil;
+        }
+    }
+}
+
+
 -(void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     NSLog(@"- CDVBackgroundGeoLocation didUpdateLocations (isMoving: %d)", isMoving);
-    
+
     locationError = nil;
     if (isMoving && !isUpdatingLocation) {
         [self startUpdatingLocation];
     }
 
     CLLocation *location = [locations lastObject];
-    
+
     if (!isMoving && !isAcquiringStationaryLocation && !stationaryLocation) {
         // Perhaps our GPS signal was interupted, re-acquire a stationaryLocation now.
         [self setPace: NO];
     }
-    
+
     // test the age of the location measurement to determine if the measurement is cached
     // in most cases you will not want to rely on cached measurements
     if ([self locationAge:location] > 5.0) return;
-    
+
     // test that the horizontal accuracy does not indicate an invalid measurement
     if (location.horizontalAccuracy < 0) return;
-    
+
     lastLocation = location;
-    
+
     // test the measurement to see if it is more accurate than the previous measurement
     if (isAcquiringStationaryLocation) {
         NSLog(@"- Acquiring stationary location, accuracy: %f", location.horizontalAccuracy);
@@ -508,7 +545,7 @@
                       [[data objectForKey:@"speed"] doubleValue],
                       (long) locationManager.distanceFilter,
                       [[data objectForKey:@"accuracy"] doubleValue]]];
-         
+
         AudioServicesPlaySystemSound (locationSyncSound);
     }
 
@@ -529,14 +566,14 @@
 
 - (void) fireStationaryRegionListeners:(NSMutableDictionary*)data
 {
-    NSLog(@"- CDVBackgroundGeoLocation#fireStationaryRegionListeners: %d", [locationQueue count]);
+    NSLog(@"- CDVBackgroundGeoLocation#fireStationaryRegionListener");
     if (![self.stationaryRegionListeners count]) {
         [self stopBackgroundTask];
         return;
     }
     // Any javascript stationaryRegion event-listeners?
     [data setObject:[NSNumber numberWithDouble:stationaryRadius] forKey:@"radius"];
-    
+
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:data];
     [result setKeepCallbackAsBool:YES];
     for (NSString *callbackId in self.stationaryRegionListeners)
@@ -550,13 +587,13 @@
  */
 - (void) startMonitoringStationaryRegion:(CLLocation*)location {
     stationaryLocation = location;
-    
+
     // fire onStationary @event for Javascript.
     [self queue:location type:@"stationary"];
-    
+
     CLLocationCoordinate2D coord = [location coordinate];
     NSLog(@"- CDVBackgroundGeoLocation createStationaryRegion (%f,%f)", coord.latitude, coord.longitude);
-    
+
     if (isDebugging) {
         AudioServicesPlaySystemSound (acquiredLocationSound);
         [self notify:[NSString stringWithFormat:@"Acquired stationary location\n%f, %f", location.coordinate.latitude,location.coordinate.longitude]];
@@ -568,7 +605,7 @@
     stationaryRegion = [[CLCircularRegion alloc] initWithCenter: coord radius:stationaryRadius identifier:@"BackgroundGeoLocation stationary region"];
     stationaryRegion.notifyOnExit = YES;
     [locationManager startMonitoringForRegion:stationaryRegion];
-    
+
     [self stopUpdatingLocation];
     locationManager.distanceFilter = distanceFilter;
     locationManager.desiredAccuracy = desiredAccuracy;
@@ -644,7 +681,7 @@
         AudioServicesPlaySystemSound (locationErrorSound);
         [self notify:[NSString stringWithFormat:@"Location error: %@", error.localizedDescription]];
     }
-    
+
     locationError = error;
 
     switch(error.code) {
@@ -673,8 +710,15 @@
 
 - (void) startUpdatingLocation
 {
-    [locationManager startUpdatingLocation];
-    isUpdatingLocation = YES;
+    SEL requestSelector = NSSelectorFromString(@"requestWhenInUseAuthorization");
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined && [locationManager respondsToSelector:requestSelector]) {
+        ((void (*)(id, SEL))[locationManager methodForSelector:requestSelector])(locationManager, requestSelector);
+        [locationManager startUpdatingLocation];
+        isUpdatingLocation = YES;
+    } else {
+        [locationManager startUpdatingLocation];
+        isUpdatingLocation = YES;
+    }
 }
 - (void) locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
 {
