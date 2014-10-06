@@ -232,7 +232,11 @@ var Update = {
 						Update.setProgress({'action': 'config'});
 						
 						Update.debug('Remote version: ' + Update.build.remote.version);
-						Update.debug('Local version: ' + Update.build.local.version);
+						if (Update.build.local && Update.build.local.version) {
+							Update.debug('Local version: ' + Update.build.local.version);
+						} else {
+							Update.debug('Local version: NONE');
+						}
 
 						if (Update.force || !Update.build.local || !Update.build.local.version || Update.build.local.version != Update.build.remote.version || Update.build.remote.force) {
 							Update.update();
