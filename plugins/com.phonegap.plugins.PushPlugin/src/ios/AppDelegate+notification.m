@@ -115,4 +115,25 @@ static char launchNotificationKey;
     self.launchNotification	= nil; // clear the association and release the object
 }
 
+
+- (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forRemoteNotification:(NSDictionary *)userInfo completionHandler:(void (^)())completionHandler
+{
+    NSLog(@"didReceiveNotificationAction");
+
+    self.launchNotification	= nil;
+    
+    PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
+    pushHandler.notificationMessage = userInfo;
+    pushHandler.identifier = identifier;
+    pushHandler.isInline = NO;
+    [pushHandler performSelectorOnMainThread:@selector(notificationReceived) withObject:pushHandler waitUntilDone:NO];
+
+    // need a way to cancel this to remove it from notification center
+    // [application cancelRemoteNotification:notification] ;
+    
+    // Mandatory to call, as soon as you're done
+    completionHandler();
+}
+
+
 @end

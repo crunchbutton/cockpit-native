@@ -33,6 +33,7 @@
     BOOL    isInline;
     NSString *notificationCallbackId;
     NSString *callback;
+    NSString *identifier;
     
     BOOL ready;
 }
@@ -41,6 +42,7 @@
 @property (nonatomic, copy) NSString *notificationCallbackId;
 @property (nonatomic, copy) NSString *callback;
 
+@property (nonatomic, strong) NSString *identifier;
 @property (nonatomic, strong) NSDictionary *notificationMessage;
 @property BOOL                          isInline;
 
