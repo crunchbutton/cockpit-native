@@ -20,7 +20,7 @@ phonegap local plugin add https://github.com/apache/cordova-plugin-media
 phonegap local plugin add https://github.com/apache/cordova-plugin-splashscreen
 phonegap local plugin add https://github.com/apache/cordova-plugin-vibration
 phonegap local plugin add https://github.com/apache/cordova-plugin-dialogs
-
+phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser
 
 
 phonegap local plugin add https://github.com/arzynik/PushPlugin
@@ -35,7 +35,7 @@ phonegap local plugin add https://github.com/christocracy/cordova-plugin-backgro
 
 #org.apache.cordova.dialogs
 
-#org.apache.cordova.inappbrowser
+
 
 phonegap build ios
 
