@@ -23,7 +23,8 @@ phonegap local plugin add https://github.com/apache/cordova-plugin-dialogs
 
 
 
-phonegap local plugin add https://github.com/phonegap-build/PushPlugin
+phonegap local plugin add https://github.com/arzynik/PushPlugin
+#phonegap local plugin add https://github.com/phonegap-build/PushPlugin
 #phonegap local plugin add https://github.com/phonegap-build/StatusBarPlugin
 phonegap local plugin add https://github.com/j-mcnally/cordova-statusTap
 phonegap local plugin add https://github.com/bgta/net.bgta.phonegap.appversion
