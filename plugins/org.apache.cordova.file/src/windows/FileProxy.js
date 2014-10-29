@@ -61,6 +61,30 @@ function getFilesystemFromPath(path) {
 var getFolderFromPathAsync = Windows.Storage.StorageFolder.getFolderFromPathAsync;
 var getFileFromPathAsync = Windows.Storage.StorageFile.getFileFromPathAsync;
 
+var writeBytesAsync = Windows.Storage.FileIO.writeBytesAsync;
+var writeTextAsync = Windows.Storage.FileIO.writeTextAsync;
+var writeBlobAsync = function writeBlobAsync(storageFile, data) {
+    return storageFile.openAsync(Windows.Storage.FileAccessMode.readWrite)
+    .then(function (output) {
+        var dataSize = data.size;
+        var input = (data.detachStream || data.msDetachStream).call(data);
+
+        // Copy the stream from the blob to the File stream 
+        return Windows.Storage.Streams.RandomAccessStream.copyAsync(input, output)
+        .then(function () {
+            return output.flushAsync().then(function () {
+                input.close();
+                output.close();
+
+                return dataSize;
+            });
+        });
+    });
+};
+
+var writeArrayBufferAsync = function writeArrayBufferAsync(storageFile, data) {
+    return writeBlobAsync(storageFile, new Blob([data]));
+};
 
 module.exports = {
 
@@ -325,12 +349,9 @@ module.exports = {
         var fullPath = cordovaPathToNative(args[0]);
 
         getFileFromPathAsync(fullPath).then(
-            function (sFile) {
-                getFileFromPathAsync(fullPath).done(function (storageFile) {
+            function (storageFile) {
                     storageFile.deleteAsync().done(win, function () {
                         fail(FileError.INVALID_MODIFICATION_ERR);
-
-                    });
                 });
             },
             function () {
@@ -515,39 +536,59 @@ module.exports = {
             position = args[2],
             isBinary = args[3];
 
-        if (data instanceof ArrayBuffer) {
-            data = Array.apply(null, new Uint8Array(data));
-        }
-        
-        var writePromise = isBinary ? Windows.Storage.FileIO.writeBytesAsync : Windows.Storage.FileIO.writeTextAsync;
-
-        
         fileName = fileName.split("/").join("\\");
-
 
         // split path to folder and file name
         var path = fileName.substring(0, fileName.lastIndexOf('\\')),
             file = fileName.split('\\').pop();
-        
+
+        function getWriteMethodForData(data, isBinary) {
+            
+            if (data instanceof Blob) {
+                return writeBlobAsync;
+            }
+
+            if (data instanceof ArrayBuffer) {
+                return writeArrayBufferAsync;
+            }
+
+            if (isBinary) {
+                return writeBytesAsync;
+            }
+
+            if (typeof data === 'string') {
+                return writeTextAsync;
+            }
+
+            throw new Error('Unsupported data type for write method');          
+        }
+
+        var writePromise = getWriteMethodForData(data, isBinary);
 
         getFolderFromPathAsync(path).done(
-            function(storageFolder) {
+            function (storageFolder) {
                 storageFolder.createFileAsync(file, Windows.Storage.CreationCollisionOption.openIfExists).done(
-                    function(storageFile) {
-                        writePromise(storageFile, data).
-                            done(function () {
-                                win(data.length);
-                            }, function () {
+                    function (storageFile) {
+                        writePromise(storageFile, data).done(
+                            function (bytesWritten) {
+                                var written = bytesWritten || data.length;
+                                win(written);
+                            },
+                            function () {
                                 fail(FileError.INVALID_MODIFICATION_ERR);
-                            });
-                    }, function() {
+                            }
+                        );
+                    },
+                    function () {
                         fail(FileError.INVALID_MODIFICATION_ERR);
                     }
                 );
-                
-            }, function() {
+
+            },
+            function () {
                 fail(FileError.NOT_FOUND_ERR);
-            });
+            }
+        );
     },
 
     truncate: function (win, fail, args) { // ["fileName","size"]

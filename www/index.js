@@ -327,7 +327,6 @@ var Update = {
 				if (go) {
 					setTimeout(function() {
 						location.href = 'wrap.html#' + file.toURL();
-
 					}, wait);
 				}
 			}
@@ -351,8 +350,11 @@ var Update = {
 			Update.setProgress({'action': 'digest'});
 			Update.complete();
 		};
+
+		var base = file.nativeURL;
 		
 		var replace = function(data) {
+			/* data = data.replace(/<base href="\/">/g, ''); */
 			data = data.replace(/<script src="\/\//g, '<script src="https://');
 			data = data.replace(/="\/assets\/css/g, '="assets/css');
 			data = data.replace(/="\/assets\/js/g, '="assets/js');
