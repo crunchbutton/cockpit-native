@@ -3,8 +3,8 @@
 #cordova create cockpit com.crunchbutton.cockpit Cockpit
 
 
-phonegap create cockpit com.crunchbutton.cockpit Cockpit
-cd cockpit
+phonegap create cockpit3 com.crunchbutton.cockpit Cockpit
+cd cockpit3
 
 #phonegap local plugin add org.apache.cordova.file-transfer
 #phonegap local plugin add org.apache.cordova.network-information
@@ -14,6 +14,7 @@ cd cockpit
 
 
 phonegap local plugin add https://github.com/apache/cordova-plugin-geolocation
+phonegap local plugin add https://github.com/apache/cordova-plugin-file
 phonegap local plugin add https://github.com/apache/cordova-plugin-file-transfer
 phonegap local plugin add https://github.com/apache/cordova-plugin-network-information
 phonegap local plugin add https://github.com/apache/cordova-plugin-media
