@@ -3,9 +3,9 @@ var Update = {
 	version: '0.0.0',
 	fs: null,
 	build: {},
-//	server: 'http://cockpit3.localhost/',
+	server: 'http://cockpit3.localhost/',
 //	server: 'https://beta.cockpit.la/',
-	server: 'https://cockpit.la/',
+//	server: 'https://cockpit.la/',
 	path: 'assets/',
 	remotePath: 'assets/',
 	force: false,
@@ -357,7 +357,9 @@ var Update = {
 			/* data = data.replace(/<base href="\/">/g, ''); */
 			data = data.replace(/<script src="\/\//g, '<script src="https://');
 			data = data.replace(/="\/assets\/css/g, '="assets/css');
+			data = data.replace(/="\/assets\/cockpit\/css/g, '="assets/css');
 			data = data.replace(/="\/assets\/js/g, '="assets/js');
+			data = data.replace(/="\/assets\/cockpit\/js/g, '="assets/js');
 			data = data.replace(/<link href="\/\//g, '<link href="https://');
 
 			Update.write(file, data, complete);

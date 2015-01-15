@@ -26,6 +26,15 @@ specification for media capture, and is provided for convenience only.
 A future implementation will adhere to the latest W3C specification
 and may deprecate the current APIs.
 
+This plugin defines a global `Media` Constructor.
+
+Although in the global scope, it is not available until after the `deviceready` event.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log(Media);
+    }
+
 ## Installation
 
     cordova plugin add org.apache.cordova.media
@@ -379,6 +388,7 @@ Starts recording an audio file.
 ### Android Quirks
 
 - Android devices record audio in Adaptive Multi-Rate format. The specified file should end with a _.amr_ extension.
+- The hardware volume controls are wired up to the media volume while any Media objects are alive. Once the last created Media object has `release()` called on it, the volume controls revert to their default behaviour. The controls are also reset on page navigation, as this releases all Media objects.
 
 ### iOS Quirks
 

@@ -1,12 +1,10 @@
 {
     "lib": {
         "www": {
-            "id": "com.crunchbutton.cockpit",
-            "version": "3.6.0",
-            "uri": "https://github.com/phonegap/phonegap-app-hello-world/archive/3.6.0.tar.gz"
+            "id": "com.phonegap.hello-world",
+            "version": "master",
+            "uri": "https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz",
+            "link": false
         }
-    },
-    "phonegap": {
-        "id": 1116175
     }
 }

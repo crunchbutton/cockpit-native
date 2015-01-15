@@ -98,6 +98,21 @@ A full example could be:
 
 NOTE: The plugin includes `org.apache.cordova.geolocation` as a dependency.  You must enable Cordova's GeoLocation in the foreground and have the user accept Location services by executing `#watchPosition` or `#getCurrentPosition`.
 
+## Example Application
+
+This plugin hosts a SampleApp in ```example/SampleApp``` folder.  This SampleApp contains no plugins so you must first start by adding this plugin
+
+```
+$ cd example/SampleApp
+$ cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+$ cordova platform add ios
+$ cordova build ios
+
+```
+
+If you're using XCode, boot the SampleApp in the iOS Simulator and enable ```Debug->Location->City Drive```.
+
+
 ## Behaviour
 
 The plugin has features allowing you to control the behaviour of background-tracking, striking a balance between accuracy and battery-usage.  In stationary-mode, the plugin attempts to descrease its power usage and accuracy by setting up a circular stationary-region of configurable #stationaryRadius.  iOS has a nice system  [Significant Changes API](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html#//apple_ref/occ/instm/CLLocationManager/startMonitoringSignificantLocationChanges), which allows the os to suspend your app until a cell-tower change is detected (typically 2-3 city-block change) Android uses [LocationManager#addProximityAlert](http://developer.android.com/reference/android/location/LocationManager.html). Windows Phone does not have such a API.
@@ -106,21 +121,35 @@ When the plugin detects your user has moved beyond his stationary-region, it eng
 
   `(round(speed, 5))^2 + distanceFilter`
 
-## iOS and Android
+## iOS
 
-The plugin works with iOS and Android, however both platforms differ significantly in their interaction with server.
+On iOS the plugin will execute your configured ```callbackFn```. You may manually POST the received ```GeoLocation``` to your server using standard XHR. iOS ignores the @config params ```url```, ```params``` and ```headers```. The plugin uses iOS Significant Changes API, and starts triggering ```callbackFn``` only when a cell-tower switch is detected (i.e. the device exits stationary radius). The function ```changePace(isMoving, success, failure)``` is provided to force the plugin to enter "moving" or "stationary" state.
 
-### iOS and WP8
-
-On iOS and WP8 the plugin will execute your configured ```callbackFn```.  You may manually POST the received ```GeoLocation``` to your server using standard XHR. iOS and WP8 ignore the @config params ```url```, ```params``` and ```headers```.
 
 ### Android
 
 Android **WILL NOT** execute your configured ```callbackFn```.  The plugin manages sync-ing GeoLocations to your server automatically, using the configured ```url```, ```params``` and ```headers```.  Since the Android plugin must run as an autonomous Background Service, disconnected from your the main Android Activity (your foreground application), the background-geolocation plugin will continue to run, even if the foreground Activity is killed due to memory constraints.  This is why the Android plugin cannot execute the Javascript ```callbackFn```, since your app is not guaranteed to keep running -- syncing locations to the server must be handled by the plugin.
 
+The Android plugin sends an HTTP POST to your configured ```url``` with ```Content-Type: application/json```.  The JSON location-data is encoded into the Request Body.  PHP people have [trouble with this](https://github.com/christocracy/cordova-plugin-background-geolocation/issues/50).  In PHP, find the raw JSON body with:
+
+```$data = file_get_contents('php://input');```.
+
+```
+{
+    "location": {
+        "latitude": "<data>",
+        "longitude": "<data>",
+        "speed": "<data>",
+        "bearing" "<data>",
+        "altitude": "<data>",
+        "recorded_at": "<data>"
+    }
+}
+```
+
 ### WP8
 
-On WP8 the plugin does not support the Stationairy location and does not implement ```getStationaryLocation()``` and ```onPaceChange()```.
+WP8 uses ```callbackFn``` the way iOS do. On WP8, however, the plugin does not support the Stationary location and does not implement ```getStationaryLocation()``` and ```onPaceChange()```.
 Keep in mind that it is **not** possible to use ```start()``` at the ```pause``` event of Cordova/PhoneGap. WP8 suspend your app immediately and ```start()``` will not be executed. So make sure you fire ```start()``` before the app is closed/minimized.
 
 ### Config
