@@ -22,7 +22,7 @@ phonegap plugin add https://github.com/apache/cordova-plugin-splashscreen
 phonegap plugin add https://github.com/apache/cordova-plugin-vibration
 phonegap plugin add https://github.com/apache/cordova-plugin-dialogs
 phonegap plugin add https://github.com/apache/cordova-plugin-inappbrowser
-#phonegap local plugin add https://github.com/apache/cordova-plugin-device
+phonegap plugin add https://github.com/apache/cordova-plugin-device
 
 
 

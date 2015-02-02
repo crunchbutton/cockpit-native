@@ -1,4 +1,3 @@
-
 var Update = {
 	version: '0.0.0',
 	fs: null,
@@ -17,6 +16,11 @@ var Update = {
 	started: false,
 
 	init: function() {
+
+		if (window.device && window.device.platform && window.device.model && window.device.platform == 'iOS' && window.device.model == 'x86_64') {
+			Update.server = 'http://cockpit3.localhost/';
+		}
+
 		setTimeout(function() {
 			navigator.splashscreen.hide();
 		}, 100);
