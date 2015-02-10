@@ -1,0 +1,23 @@
+$ keytool -genkey -v -keystore cockpitapp.keystore -alias cockpitapp -keyalg RSA -keysize 2048 -validity 10000
+Enter keystore password:
+Re-enter new password:
+What is your first and last name?
+  [Unknown]:  Devin Smith
+What is the name of your organizational unit?
+  [Unknown]:
+What is the name of your organization?
+  [Unknown]:  Crunchbutton
+What is the name of your City or Locality?
+  [Unknown]:  Marina Del Rey
+What is the name of your State or Province?
+  [Unknown]:  CA
+What is the two-letter country code for this unit?
+  [Unknown]:  US
+Is CN=Devin Smith, OU=Unknown, O=Crunchbutton, L=Marina Del Rey, ST=CA, C=US correct?
+  [no]:  y
+
+Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+	for: CN=Devin Smith, OU=Unknown, O=Crunchbutton, L=Marina Del Rey, ST=CA, C=US
+Enter key password for <cockpitapp>
+	(RETURN if same as keystore password):
+[Storing cockpitapp.keystore]
