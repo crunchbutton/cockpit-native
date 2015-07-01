@@ -27,12 +27,14 @@
 	
 				var loc = location.hash.substr(1);
 				frame = document.createElement('iframe');
+				var loaded = false;
 	
 				frame.src = loc;
 				frame.className = 'frame';
 				frame.allowTransparency = 'true';
 				frame.onload = function() {
 					var self = this;
+					loaded = true;
 					setTimeout(function() {
 						self.style.visibility = 'visible';
 					},100);
@@ -44,6 +46,38 @@
 					e.msg = notification;
 					frame.contentWindow.document.dispatchEvent(e);
 				};
+				
+				
+				var checkAssets = function() {
+					if (!frame.contentWindow.App) {
+						return false;
+					}
+					if (getComputedStyle(frame.contentWindow.document.body).getPropertyValue('color') == 'rgb(0, 0, 0)') {
+						return false;
+					}
+					if (frame.contentWindow.document.getElementsByClassName('wrapper').length == 0) {
+						return false;
+					}
+					if (!loaded) {
+						return false;
+					}
+				};
+				
+				var nativeAlert = function(txt, fn) {
+					window.navigator.notification.alert(txt, fn || null, 'Cockpit');
+				};
+				
+				setTimeout(function() {
+					var status = checkAssets();
+					if (!status && !document.cookie) {
+						nativeAlert('We detected a problem with the app. Press OK to automagically to fix it.', function() {
+							document.cookie = 'force=true';
+							window.location.href = 'index.html#force';
+						});
+					} else {
+						nativeAlert('We still detected a problem with the app. Please contact support if this keeps happening.');
+					}
+				}, 5000);
 	
 			}, false);
 		</script>

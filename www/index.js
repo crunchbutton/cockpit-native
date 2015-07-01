@@ -20,6 +20,8 @@ var Update = {
 		if (window.device && window.device.platform && window.device.model && window.device.platform == 'iOS' && window.device.model == 'x86_64') {
 			Update.server = 'http://cockpit3.localhost/';
 		}
+		
+		Update.force = location.hash.substr(1) == 'force' ? true : false;
 
 		setTimeout(function() {
 			navigator.splashscreen.hide();
