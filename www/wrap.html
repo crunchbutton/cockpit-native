@@ -61,6 +61,7 @@
 					if (!loaded) {
 						return false;
 					}
+					return true;
 				};
 				
 				var nativeAlert = function(txt, fn) {
@@ -74,7 +75,7 @@
 							document.cookie = 'force=true';
 							window.location.href = 'index.html#force';
 						});
-					} else {
+					} else if (!status) {
 						nativeAlert('We still detected a problem with the app. Please contact support if this keeps happening.');
 					}
 				}, 5000);
