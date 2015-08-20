@@ -1,14 +1,30 @@
+Premium Version
+==============================
+
+A new [Premium Version](http://transistorsoft.github.io/cordova-background-geolocation/) is available.
+- Implements the latest Android Fused GeoLocation and ActivityRecognition APIs for **much-improved** battery performance.
+- Auto-start Android & iOS on device-boot.
+- Android now executes your ```callback``` just like **iOS**!
+- Both iOS & Android can optionally **HTTP** POST locations to your server in the native code.  Optional **batch-mode**.
+- Native **SQLite persistence** layer (for when no network is available).  Plugin provides a javascript API to fetch and/or sync the locations to your server.
+- **Geofencing**.  Both iOS and Android allow you to add arbitrary circular geofences which execute your javascript-callback when a crossing-event occurs.
+
+![Android Battery Performance](/images/Screenshot-android-battery-framed.png "Android battery performance")
+![SampleApp](/images/Screenshot-android-map1-framed.png "SampleApp")
+
 BackgroundGeoLocation
 ==============================
 
 Cross-platform background geolocation for Cordova / PhoneGap with battery-saving "circular region monitoring" and "stop detection".
+
+![distanceFilter at highway speed](/images/distance-filter-highway.png "distanceFilter at highway speed")
 
 Follows the [Cordova Plugin spec](https://github.com/apache/cordova-plugman/blob/master/plugin_spec.md), so that it works with [Plugman](https://github.com/apache/cordova-plugman).
 
 This plugin leverages Cordova/PhoneGap's [require/define functionality used for plugins](http://simonmacdonald.blogspot.ca/2012/08/so-you-wanna-write-phonegap-200-android.html).
 
 ## Using the plugin ##
-The plugin creates the object `window.plugins.backgroundGeoLocation` with the methods
+The plugin creates the object `window.BackgroundGeolocation` with the methods
 
   `configure(success, fail, option)`,
 
@@ -21,6 +37,12 @@ The plugin creates the object `window.plugins.backgroundGeoLocation` with the me
 ```
 
    cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+```
+
+**ACHTUNG!** If you're not using **Cordova 5.x**, you must use the tagged branch ```#cordova-4.x``` to install the plugin, like this (Because Cordova has [migrated to npm](https://cordova.apache.org/announcements/2015/04/21/plugins-release-and-move-to-npm.html))
+
+```
+  cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git#cordova-4.x
 ```
 
 A full example could be:
@@ -37,7 +59,7 @@ A full example could be:
         console.log('Location from Phonegap');
     });
 
-    var bgGeo = window.plugins.backgroundGeoLocation;
+    var bgGeo = window.BackgroundGeolocation;
 
     /**
     * This would be your own callback for Ajax-requests after POSTing background geolocation to your server.
@@ -100,11 +122,16 @@ NOTE: The plugin includes `org.apache.cordova.geolocation` as a dependency.  You
 
 ## Example Application
 
-This plugin hosts a SampleApp in ```example/SampleApp``` folder.  This SampleApp contains no plugins so you must first start by adding this plugin
+This plugin hosts a SampleApp in ```example/SampleApp``` folder.  This SampleApp contains no plugins so you must first start by adding this plugin.  You must copy the the `SampleApp` **out of** the repo folder to use it.
 
+![SampleApp](/images/android-sample-app.png "SampleApp")
+
+First, copy the `SampleApp` out of the repo and into any folder you wish (eg: `tmp`).
 ```
-$ cd example/SampleApp
+$ cp -R cordova-plugin-background-geolocation/example/SampleApp ./tmp
+$ cd tmp/SampleApp
 $ cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+$ cordova plugin add cordova-plugin-whitelist
 $ cordova platform add ios
 $ cordova build ios
 
@@ -175,7 +202,7 @@ When enabled, the plugin will emit sounds for life-cycle events of background-ge
 - Acquiring stationary location sound: *[ios]* "tick,tick,tick" sound, *[android]* none
 - Stationary location acquired sound:  *[ios]* "bloom" sound, *[android]* long tt beep.
 
-![Enable Background Audio](/enable-background-audio.png "Enable Background Audio")
+![Enable Background Audio](/images/enable-background-audio.png "Enable Background Audio")
 
 #####`@param {Integer} distanceFilter`
 
@@ -205,11 +232,11 @@ A gps location will be recorded every 930m
 
 Note the following real example of background-geolocation on highway 101 towards San Francisco as the driver slows down as he runs into slower traffic (geolocations become compressed as distanceFilter decreases)
 
-![distanceFilter at highway speed](/distance-filter-highway.png "distanceFilter at highway speed")
+![distanceFilter at highway speed](/images/distance-filter-highway.png "distanceFilter at highway speed")
 
 Compare now background-geolocation in the scope of a city.  In this image, the left-hand track is from a cab-ride, while the right-hand track is walking speed.
 
-![distanceFilter at city scale](/distance-filter-city.png "distanceFilter at city scale")
+![distanceFilter at city scale](/images/distance-filter-city.png "distanceFilter at city scale")
 
 #####`@param {Boolean} stopOnTerminate`
 Enable this in order to force a stop() when the application terminated (e.g. on iOS, double-tap home button, swipe away the app)
@@ -251,24 +278,6 @@ In Windows Phone, the underlying GeoLocator you can choose to use 'DesiredAccura
 
 ## Licence ##
 
-The MIT License
+[Apache License](https://github.com/christocracy/cordova-plugin-background-geolocation/blob/master/LICENSE)
 
-Copyright (c) 2013 Chris Scott and Brian Samson
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+Copyright (c) 2013 Christopher Scott, Transistor Software
