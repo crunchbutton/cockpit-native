@@ -39,8 +39,8 @@ exports.defineAutoTests = function () {
     // config for upload test server
     // NOTE:
     //      more info at https://github.com/apache/cordova-labs/tree/cordova-filetransfer
-    var SERVER                  = "http://cordova-filetransfer.jitsu.com";
-    var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-filetransfer.jitsu.com";
+    var SERVER                  = "http://cordova-vm.apache.org:5000";
+    var SERVER_WITH_CREDENTIALS = "http://cordova_user:cordova_password@cordova-vm.apache.org:5000";
 
     // flags
     var isWindows = cordova.platformId === 'windows8' || cordova.platformId === 'windows';
@@ -966,11 +966,11 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         file_transfer_tests;
 
     createActionButton('Download and display img (cdvfile)', function () {
-        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
+        downloadImg(imageURL, function (entry) { return entry.toInternalURL(); }, new Image());
     }, 'cdv_image');
 
     createActionButton('Download and display img (native)', function () {
-        downloadImg(imageURL, function (entry) { return entry.toNativeURL(); }, new Image());
+        downloadImg(imageURL, function (entry) { return entry.toURL(); }, new Image());
     }, 'native_image');
 
     createActionButton('Download to a non-existent dir (should work)', function () {
@@ -980,12 +980,12 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     createActionButton('Download and play video (cdvfile)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
+        downloadImg(videoURL, function (entry) { return entry.toInternalURL(); }, videoElement);
     }, 'cdv_video');
 
     createActionButton('Download and play video (native)', function () {
         var videoElement = document.createElement('video');
         videoElement.controls = "controls";
-        downloadImg(videoURL, function (entry) { return entry.toNativeURL(); }, videoElement);
+        downloadImg(videoURL, function (entry) { return entry.toURL(); }, videoElement);
     }, 'native_video');
 };

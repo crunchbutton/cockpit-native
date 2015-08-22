@@ -26,11 +26,13 @@ phonegap plugin add https://github.com/apache/cordova-plugin-device
 
 
 
-phonegap plugin add https://github.com/arzynik/PushPlugin
+#phonegap plugin add https://github.com/arzynik/PushPlugin
 #phonegap local plugin add https://github.com/phonegap-build/PushPlugin
+phonegap plugin add https://github.com/phonegap/phonegap-plugin-push
 phonegap plugin add https://github.com/apache/cordova-plugin-statusbar
 phonegap plugin add https://github.com/bgta/net.bgta.phonegap.appversion
 phonegap plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+phonegap plugin add https://github.com/crosswalk-project/cordova-plugin-crosswalk-webview
 
 
 #https://git-wip-us.apache.org/repos/asf/cordova-plugin-device.git

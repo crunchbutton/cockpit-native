@@ -401,6 +401,52 @@ This method will now return filesystem URLs of the form
 
 which can be used to identify the file uniquely.
 
+## cdvfile protocol
+**Purpose**
+
+`cdvfile://localhost/persistent|temporary|another-fs-root*/path/to/file` can be used for platform-independent file paths. 
+cdvfile paths are supported by core plugins - for example you can download an mp3 file to cdvfile-path via `cordova-plugin-file-transfer` and play it via `cordova-plugin-media`.
+
+__*Note__: See [Where to Store Files](#where-to-store-files), [File System Layouts](#file-system-layouts) and [Configuring the Plugin](#configuring-the-plugin-optional) for more details about available fs roots.
+
+To use `cdvfile` as a tag' `src` you can convert it to native path via `toURL()` method of the resolved fileEntry, which you can get via `resolveLocalFileSystemURL` - see examples below.
+
+You can also use `cdvfile://` paths directly in the DOM, for example:
+```HTML
+<img src="cdvfile://localhost/persistent/img/logo.png" />
+```
+
+__*Note__: This method requires following Content Security rules updates:
+* Add `cdvfile:` scheme to `Content-Security-Policy` meta tag of the index page, e.g.:
+  - `<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: `**cdvfile:**` https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">`
+* Add `<access origin="cdvfile://*" />` to `config.xml`.
+
+**Converting cdvfile:// to native path**
+
+```javascript
+resolveLocalFileSystemURL('cdvfile://localhost/temporary/path/to/file.mp4', function(entry) {
+    var nativePath = entry.toURL();
+    console.log('Native URI: ' + nativePath);
+    document.getElementById('video').src = nativePath;
+```
+
+**Converting native path to cdvfile://**
+
+```javascript
+resolveLocalFileSystemURL(nativePath, function(entry) {
+    console.log('cdvfile URI: ' + entry.toInternalURL());
+```
+
+**Using cdvfile in core plugins**
+
+```javascript
+fileTransfer.download(uri, 'cdvfile://localhost/temporary/path/to/file.mp3', function (entry) { ... 
+```
+```javascript
+var my_media = new Media('cdvfile://localhost/temporary/path/to/file.mp3', ...);
+my_media.play();
+```
+
 ## List of Error Codes and Meanings
 When an error is thrown, one of the following codes will be used. 
 
