@@ -228,12 +228,24 @@ var Update = {
 
 			Update.read(build, function(res) {
 				if (res) {
-					Update.build.local = JSON.parse(res);
+					try {
+						Update.build.local = JSON.parse(res);
+					} catch (e) {
+						Update.build.local = null;
+					}
 				}
 
 				Update.updateBuild(function(build) {
 					Update.read(build, function(res) {
-						Update.build.remote = JSON.parse(res);
+						try {
+							Update.build.remote = JSON.parse(res);
+						} catch (e) {
+							Update.build.remote = null;
+						}
+						
+						if (!Update.build.remote) {
+							Update.error('Failed parsing remote config');
+						}
 						
 						Update.setProgress({'action': 'config'});
 						
