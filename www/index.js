@@ -425,7 +425,7 @@ var Update = {
 			return;
 		}
 		var file = files.shift();
-		Update.getFile(Update.remotePath + file, Update.path + file, function() {
+		Update.getFile(Update.remotePath + file, Update.path + file.replace(/(.*)(\?.*)/,'$1'), function() {
 			Update.setProgress({'action': 'file'});
 			Update.getFiles(files, fn);
 		});
@@ -437,7 +437,9 @@ var Update = {
 		local = local.replace(/^assets\/cockpit\//,'assets/');
 
 		Update.recursiveGetFile(local, {create: true, exclusive: false}, function(fileEntry) {
+			//Update.debug('Filename: ', fileEntry.toURL());
 			Update.gotFileEntry(fileEntry, remote, fn);
+			
 		}, function() {
 			Update.error('Failed creating file: ' + local, arguments);
 		});
