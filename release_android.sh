@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 cordova build android --release
-rm -f platforms/android/ant-build/Cockpit.apk
+rm -f platforms/android/build/outputs/apk/Cockpit.apk
 jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 \
 -keystore cert/android/com.crunchbutton.cockpit.keystore \
 -storepass ***REMOVED*** \
