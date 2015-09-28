@@ -120,11 +120,11 @@ var Update = {
 			case Connection.CELL_3G:
 			case Connection.CELL_4G:
 			case Connection.CELL:
+			case Connection.UNKNOWN:
 				status = true;
 				break;
 
 			case Connection.NONE:
-			case Connection.UNKNOWN:
 			default:
 				status = false;
 				document.getElementById('status').className = 'status-connecting';
