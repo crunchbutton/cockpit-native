@@ -54,7 +54,9 @@ phonegap build ios
 #	<false/>
 #	<key>UIViewControllerBasedStatusBarAppearance</key>
 #	<false/>
-#
-
+# <key>NSAppTransportSecurity</key> // http://stackoverflow.com/questions/32631184/the-resource-could-not-be-loaded-because-the-app-transport-security-policy-requi
+#		<Dictionary>
+# 		<key>NSAllowsArbitraryLoads</key>
+# 		<yes/>
 
 # change launch screen file in xcode to MainViewController
