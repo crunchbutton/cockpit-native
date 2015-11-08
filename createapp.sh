@@ -34,6 +34,8 @@ phonegap plugin add https://github.com/bgta/net.bgta.phonegap.appversion
 phonegap plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
 phonegap plugin add https://github.com/crosswalk-project/cordova-plugin-crosswalk-webview
 
+# AppAvailability - #6355
+cordova plugin add https://github.com/ohh2ahh/AppAvailability.git
 
 #https://git-wip-us.apache.org/repos/asf/cordova-plugin-device.git
 
