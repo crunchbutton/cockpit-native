@@ -31,7 +31,8 @@ phonegap plugin add https://github.com/apache/cordova-plugin-device
 phonegap plugin add https://github.com/phonegap/phonegap-plugin-push
 phonegap plugin add https://github.com/apache/cordova-plugin-statusbar
 phonegap plugin add https://github.com/bgta/net.bgta.phonegap.appversion
-phonegap plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+# phonegap plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+phonegap plugin add cordova-plugin-mauron85-background-geolocation
 phonegap plugin add https://github.com/crosswalk-project/cordova-plugin-crosswalk-webview
 
 # AppAvailability - #6355
