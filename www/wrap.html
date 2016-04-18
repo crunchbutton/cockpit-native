@@ -6,7 +6,7 @@
 		<!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
 		<!meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
 		<meta name="viewport" content="width=device-width, user-scalable=no" />
-		
+
 		<link rel="stylesheet" type="text/css" href="index.css" />
 		<meta name="msapplication-tap-highlight" content="no" />
 		<title>Cockpit</title>
@@ -16,19 +16,19 @@
 		<script type="text/javascript" src="cordova.js"></script>
 		<script>
 			var frame;
-		
+
 			window.addEventListener('statusTap', function() {
 				var e = new CustomEvent('statusTap');
 				frame.contentWindow.document.dispatchEvent(e);
 			});
-			
+
 			document.addEventListener('deviceready', function() {
 				//parent.StatusBar.styleBlackTranslucent();
-	
+
 				var loc = location.hash.substr(1);
 				frame = document.createElement('iframe');
 				var loaded = false;
-	
+
 				frame.src = loc;
 				frame.className = 'frame';
 				frame.allowTransparency = 'true';
@@ -40,14 +40,14 @@
 					},100);
 				};
 				document.body.appendChild(frame);
-	
+
 				window.pushnotification = function(notification) {
 					var e = new CustomEvent('pushnotification');
 					e.msg = notification;
 					frame.contentWindow.document.dispatchEvent(e);
 				};
-				
-				
+
+
 				var checkAssets = function() {
 					if (!frame.contentWindow.App) {
 						return false;
@@ -63,11 +63,11 @@
 					}
 					return true;
 				};
-				
+
 				var nativeAlert = function(txt, fn) {
 					window.navigator.notification.alert(txt, fn || null, 'Cockpit');
 				};
-				
+
 				setTimeout(function() {
 					var status = checkAssets();
 					if (!status && !document.cookie) {
@@ -78,8 +78,8 @@
 					} else if (!status) {
 						nativeAlert('We still detected a problem with the app. Please contact support if this keeps happening.');
 					}
-				}, 10000);
-	
+				}, 15000);
+
 			}, false);
 		</script>
 	</body>
