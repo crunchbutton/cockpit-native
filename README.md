@@ -19,20 +19,6 @@ ionic resources
 
 ---
 
-## Build
-
-In order to build that app, we need to build against specific version of web so that it can download all the necessary assets. The **build.php** contains all the information and paths about that you will need. The build target is used to download code and assets, and bundle them with the app. This way there is no need to have any external http requests other than our rest.
-
-```sh
-./build.php dev
-```
-or
-```sh
-./build.php live
-```
-
----
-
 ## Release
 For iOS, use xcode for your releases. For Android, you can use the **release_android.sh** script. You will need to create an android keystore in the **cert** directory.
 
