@@ -4,3 +4,4 @@ www_source/*
 .idea
 resources/ios
 resources/android
+res/
