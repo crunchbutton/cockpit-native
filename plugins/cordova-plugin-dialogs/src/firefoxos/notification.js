@@ -60,7 +60,8 @@ function modal(message, callback, title, buttonLabels, domObjects) {
     var menu = modalDocument.createElement('menu');
     box.appendChild(menu);
     for (var index = 0; index < buttonLabels.length; index++) {
-        addButton(buttonLabels[index], index, (index === 0));
+        // TODO: last button listens to the cancel key
+        addButton(buttonLabels[index], (index+1), (index === 0));
     }
     modalDocument.body.appendChild(box);
 
@@ -83,12 +84,12 @@ function modal(message, callback, title, buttonLabels, domObjects) {
             result = {
                 input1: '',
                 buttonIndex: 0
-            }
+            };
         }
         mainWindow.setTimeout(function() {
             callback(result);
         }, 10);
-    };
+    }
     modalWindow.addEventListener('unload', onUnload, false);
 
     // call callback and destroy modal
@@ -109,7 +110,7 @@ function modal(message, callback, title, buttonLabels, domObjects) {
           }
           response = response || labelIndex;
           callback(response);
-        }
+        };
     }
 }
 

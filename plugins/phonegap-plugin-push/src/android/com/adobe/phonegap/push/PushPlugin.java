@@ -6,7 +6,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gms.gcm.GcmPubSub;
+import com.google.android.gms.iid.InstanceID;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -17,23 +18,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PushPlugin extends CordovaPlugin {
-    public static final String COM_ADOBE_PHONEGAP_PUSH = "com.adobe.phonegap.push";
+import me.leolin.shortcutbadger.ShortcutBadger;
+
+public class PushPlugin extends CordovaPlugin implements PushConstants {
 
     public static final String LOG_TAG = "PushPlugin";
 
-    public static final String INITIALIZE = "init";
-    public static final String UNREGISTER = "unregister";
-    public static final String EXIT = "exit";
-
     private static CallbackContext pushContext;
     private static CordovaWebView gWebView;
-    private static String gSenderID;
-    private static Bundle gCachedExtras = null;
+    private static List<Bundle> gCachedExtras = Collections.synchronizedList(new ArrayList<Bundle>());
     private static boolean gForeground = false;
-    private static String gCallback = null;
+
+    private static String registration_id = "";
 
     /**
      * Gets the application context from cordova's main activity.
@@ -44,87 +47,214 @@ public class PushPlugin extends CordovaPlugin {
     }
 
     @Override
-    public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
-
-        boolean result = false;
-
+    public boolean execute(final String action, final JSONArray data, final CallbackContext callbackContext) {
         Log.v(LOG_TAG, "execute: action=" + action);
+        gWebView = this.webView;
 
         if (INITIALIZE.equals(action)) {
-            pushContext = callbackContext;
-            JSONObject jo = null;
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    pushContext = callbackContext;
+                    JSONObject jo = null;
 
-            Log.v(LOG_TAG, "execute: data=" + data.toString());
+                    Log.v(LOG_TAG, "execute: data=" + data.toString());
+                    SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
+                    String senderID = null;
 
-            try {
-                jo = data.getJSONObject(0).getJSONObject("android");
+                    try {
+                        jo = data.getJSONObject(0).getJSONObject(ANDROID);
 
-                gWebView = this.webView;
-                Log.v(LOG_TAG, "execute: jo=" + jo.toString());
+                        Log.v(LOG_TAG, "execute: jo=" + jo.toString());
 
-                gSenderID = jo.getString("senderID");
+                        senderID = jo.getString(SENDER_ID);
 
-                Log.v(LOG_TAG, "execute: senderID=" + gSenderID);
+                        Log.v(LOG_TAG, "execute: senderID=" + senderID);
 
-                GCMRegistrar.register(getApplicationContext(), gSenderID);
-                result = true;
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "execute: Got JSON Exception " + e.getMessage());
-                result = false;
-                callbackContext.error(e.getMessage());
-            }
+                        String savedSenderID = sharedPref.getString(SENDER_ID, "");
+                        registration_id = InstanceID.getInstance(getApplicationContext()).getToken(senderID, GCM);
 
-            if (jo != null) {
-                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPref.edit();
-                try {
-                    editor.putString("icon", jo.getString("icon"));
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "no icon option");
+                        if (!"".equals(registration_id)) {
+                            JSONObject json = new JSONObject().put(REGISTRATION_ID, registration_id);
+
+                            Log.v(LOG_TAG, "onRegistered: " + json.toString());
+
+                            JSONArray topics = jo.optJSONArray(TOPICS);
+                            subscribeToTopics(topics, registration_id);
+
+                            PushPlugin.sendEvent( json );
+                        } else {
+                            callbackContext.error("Empty registration ID received from GCM");
+                            return;
+                        }
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "execute: Got JSON Exception " + e.getMessage());
+                        callbackContext.error(e.getMessage());
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "execute: Got JSON Exception " + e.getMessage());
+                        callbackContext.error(e.getMessage());
+                    }
+
+                    if (jo != null) {
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        try {
+                            editor.putString(ICON, jo.getString(ICON));
+                        } catch (JSONException e) {
+                            Log.d(LOG_TAG, "no icon option");
+                        }
+                        try {
+                            editor.putString(ICON_COLOR, jo.getString(ICON_COLOR));
+                        } catch (JSONException e) {
+                            Log.d(LOG_TAG, "no iconColor option");
+                        }
+
+                        boolean clearBadge = jo.optBoolean(CLEAR_BADGE, false);
+                        if (clearBadge) {
+                            setApplicationIconBadgeNumber(getApplicationContext(), 0);
+                        }
+
+                        editor.putBoolean(SOUND, jo.optBoolean(SOUND, true));
+                        editor.putBoolean(VIBRATE, jo.optBoolean(VIBRATE, true));
+                        editor.putBoolean(CLEAR_BADGE, clearBadge);
+                        editor.putBoolean(CLEAR_NOTIFICATIONS, jo.optBoolean(CLEAR_NOTIFICATIONS, true));
+                        editor.putBoolean(FORCE_SHOW, jo.optBoolean(FORCE_SHOW, false));
+                        editor.putString(SENDER_ID, senderID);
+                        editor.commit();
+
+                    }
+
+                    if (!gCachedExtras.isEmpty()) {
+                        Log.v(LOG_TAG, "sending cached extras");
+                        synchronized(gCachedExtras) {
+                            Iterator<Bundle> gCachedExtrasIterator = gCachedExtras.iterator();
+                            while (gCachedExtrasIterator.hasNext()) {
+                                sendExtras(gCachedExtrasIterator.next());
+                            }
+                        }
+                        gCachedExtras.clear();
+                    }
                 }
-                try {
-                    editor.putString("iconColor", jo.getString("iconColor"));
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "no iconColor option");
-                }
-                editor.putBoolean("sound", jo.optBoolean("sound", true));
-                editor.putBoolean("vibrate", jo.optBoolean("vibrate", true));
-                editor.putBoolean("clearNotifications", jo.optBoolean("clearNotifications", true));
-                editor.commit();
-            }
-
-            if ( gCachedExtras != null) {
-                Log.v(LOG_TAG, "sending cached extras");
-                sendExtras(gCachedExtras);
-                gCachedExtras = null;
-            }
-
+            });
         } else if (UNREGISTER.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
+                        JSONArray topics = data.optJSONArray(0);
+                        if (topics != null && !"".equals(registration_id)) {
+                            unsubscribeFromTopics(topics, registration_id);
+                        } else {
+                            InstanceID.getInstance(getApplicationContext()).deleteInstanceID();
+                            Log.v(LOG_TAG, "UNREGISTER");
 
-            GCMRegistrar.unregister(getApplicationContext());
+                            // Remove shared prefs
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.remove(SOUND);
+                            editor.remove(VIBRATE);
+                            editor.remove(CLEAR_BADGE);
+                            editor.remove(CLEAR_NOTIFICATIONS);
+                            editor.remove(FORCE_SHOW);
+                            editor.remove(SENDER_ID);
+                            editor.commit();
+                        }
 
-            Log.v(LOG_TAG, "UNREGISTER");
-            result = true;
+                        callbackContext.success();
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "execute: Got JSON Exception " + e.getMessage());
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        } else if (FINISH.equals(action)) {
             callbackContext.success();
+        } else if (HAS_PERMISSION.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    JSONObject jo = new JSONObject();
+                    try {
+                        jo.put("isEnabled", PermissionUtils.hasPermission(getApplicationContext(), "OP_POST_NOTIFICATION"));
+                        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, jo);
+                        pluginResult.setKeepCallback(true);
+                        callbackContext.sendPluginResult(pluginResult);
+                    } catch (UnknownError e) {
+                        callbackContext.error(e.getMessage());
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        } else if (SET_APPLICATION_ICON_BADGE_NUMBER.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    Log.v(LOG_TAG, "setApplicationIconBadgeNumber: data=" + data.toString());
+                    try {
+                        setApplicationIconBadgeNumber(getApplicationContext(), data.getJSONObject(0).getInt(BADGE));
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                    callbackContext.success();
+                }
+            });
+        } else if (CLEAR_ALL_NOTIFICATIONS.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    Log.v(LOG_TAG, "clearAllNotifications");
+                    clearAllNotifications();
+                    callbackContext.success();
+                }
+            });
+        } else if (SUBSCRIBE.equals(action)){
+            // Subscribing for a topic
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        String topic = data.getString(0);
+                        subscribeToTopic(topic, registration_id);
+                        callbackContext.success();
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    } catch (IOException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        } else if (UNSUBSCRIBE.equals(action)){
+            // un-subscribing for a topic
+            cordova.getThreadPool().execute(new Runnable(){
+                public void run() {
+                    try {
+                        String topic = data.getString(0);
+                        unsubscribeFromTopic(topic, registration_id);
+                        callbackContext.success();
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    } catch (IOException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
         } else {
-            result = false;
             Log.e(LOG_TAG, "Invalid action : " + action);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+            return false;
         }
 
-        return result;
+        return true;
     }
 
     public static void sendEvent(JSONObject _json) {
         PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, _json);
         pluginResult.setKeepCallback(true);
-        pushContext.sendPluginResult(pluginResult);
+        if (pushContext != null) {
+            pushContext.sendPluginResult(pluginResult);
+        }
     }
 
     public static void sendError(String message) {
         PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, message);
         pluginResult.setKeepCallback(true);
-        pushContext.sendPluginResult(pluginResult);
+        if (pushContext != null) {
+            pushContext.sendPluginResult(pluginResult);
+        }
     }
 
     /*
@@ -137,8 +267,16 @@ public class PushPlugin extends CordovaPlugin {
                 sendEvent(convertBundleToJson(extras));
             } else {
                 Log.v(LOG_TAG, "sendExtras: caching extras to send at a later time.");
-                gCachedExtras = extras;
+                gCachedExtras.add(extras);
             }
+        }
+    }
+
+    public static void setApplicationIconBadgeNumber(Context context, int badgeCount) {
+        if (badgeCount > 0) {
+            ShortcutBadger.applyCount(context, badgeCount);
+        } else {
+            ShortcutBadger.removeCount(context);
         }
     }
 
@@ -153,10 +291,9 @@ public class PushPlugin extends CordovaPlugin {
         super.onPause(multitasking);
         gForeground = false;
 
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(PushPlugin.COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
-        if (prefs.getBoolean("clearNotifications", true)) {
-            final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancelAll();
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
+        if (prefs.getBoolean(CLEAR_NOTIFICATIONS, true)) {
+            clearAllNotifications();
         }
     }
 
@@ -173,41 +310,115 @@ public class PushPlugin extends CordovaPlugin {
         gWebView = null;
     }
 
+    private void clearAllNotifications() {
+        final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+    }
+
+    /**
+    * Transform `topic name` to `topic path`
+    * Normally, the `topic` inputed from end-user is `topic name` only.
+    * We should convert them to GCM `topic path`
+    * Example:
+    *  when	    topic name = 'my-topic'
+    *  then	    topic path = '/topics/my-topic'
+    *
+    * @param    String  topic The topic name
+    * @return           The topic path
+    */
+    private String getTopicPath(String topic) {
+        if (topic.startsWith("/topics/")) {
+            return topic;
+        } else if (topic.startsWith("/topic/")) {
+            return topic.replace("/topic/", "/topics/");
+        } else {
+            return "/topics/" + topic;
+        }
+    }
+
+    private void subscribeToTopics(JSONArray topics, String registrationToken) throws IOException {
+        if (topics != null) {
+            String topic = null;
+            for (int i=0; i<topics.length(); i++) {
+                topic = topics.optString(i, null);
+                subscribeToTopic(topic, registrationToken);
+            }
+        }
+    }
+
+    private void subscribeToTopic(String topic, String registrationToken) throws IOException
+    {
+        try {
+            if (topic != null) {
+                Log.d(LOG_TAG, "Subscribing to topic: " + topic);
+                GcmPubSub.getInstance(getApplicationContext()).subscribe(registrationToken, getTopicPath(topic), null);
+            }
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Failed to subscribe to topic: " + topic, e);
+			throw e;
+        } catch (IllegalArgumentException argException) {
+            Log.e(LOG_TAG, "Cannot subscribe to topic [" + topic + "], illegal topic name");
+        }
+    }
+
+    private void unsubscribeFromTopics(JSONArray topics, String registrationToken) {
+        if (topics != null) {
+            String topic = null;
+            for (int i=0; i<topics.length(); i++) {
+                try {
+                    topic = topics.optString(i, null);
+                    if (topic != null) {
+                        Log.d(LOG_TAG, "Unsubscribing to topic: " + topic);
+                        GcmPubSub.getInstance(getApplicationContext()).unsubscribe(registrationToken, getTopicPath(topic));
+                    }
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Failed to unsubscribe to topic: " + topic, e);
+                }
+            }
+        }
+    }
+
+    private void unsubscribeFromTopic(String topic, String registrationToken) throws IOException
+    {
+        try {
+            if (topic != null) {
+                Log.d(LOG_TAG, "Unsubscribing to topic: " + topic);
+                GcmPubSub.getInstance(getApplicationContext()).unsubscribe(registrationToken, getTopicPath(topic));
+            }
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Failed to unsubscribe to topic: " + topic, e);
+			throw e;
+        }
+    }
+
     /*
      * serializes a bundle to JSON.
      */
     private static JSONObject convertBundleToJson(Bundle extras) {
+        Log.d(LOG_TAG, "convert extras to json");
         try {
             JSONObject json = new JSONObject();
             JSONObject additionalData = new JSONObject();
+
+            // Add any keys that need to be in top level json to this set
+            HashSet<String> jsonKeySet = new HashSet();
+            Collections.addAll(jsonKeySet, TITLE,MESSAGE,COUNT,SOUND,IMAGE);
+
             Iterator<String> it = extras.keySet().iterator();
             while (it.hasNext()) {
                 String key = it.next();
                 Object value = extras.get(key);
-                 
+
                 Log.d(LOG_TAG, "key = " + key);
 
-                // System data from Android
-                if (key.equals("from") || key.equals("collapse_key")) {
-                    additionalData.put(key, value);
+                if (jsonKeySet.contains(key)) {
+                    json.put(key, value);
                 }
-                else if (key.equals("foreground")) {
-                    additionalData.put(key, extras.getBoolean("foreground"));
+                else if (key.equals(COLDSTART)) {
+                    additionalData.put(key, extras.getBoolean(COLDSTART));
                 }
-                else if (key.equals("coldstart")){
-                    additionalData.put(key, extras.getBoolean("coldstart"));
-                } else if (key.equals("message") || key.equals("body")) {
-                    json.put("message", value);
-                } else if (key.equals("title")) {
-                    json.put("title", value);
-                } else if (key.equals("msgcnt") || key.equals("badge")) {
-                    json.put("count", value);
-                } else if (key.equals("soundname") || key.equals("sound")) {
-                    json.put("sound", value);
-                } else if (key.equals("image")) {
-                    json.put("image", value);
-                } else if (key.equals("callback")) {
-                    json.put("callback", value);
+                else if (key.equals(FOREGROUND)) {
+                    additionalData.put(key, extras.getBoolean(FOREGROUND));
                 }
                 else if ( value instanceof String ) {
                     String strValue = (String)value;
@@ -222,14 +433,14 @@ public class PushPlugin extends CordovaPlugin {
                         }
                         else {
                             additionalData.put(key, value);
-                        }                       
+                        }
                     } catch (Exception e) {
                         additionalData.put(key, value);
                     }
                 }
             } // while
-            
-            json.put("additionalData", additionalData);
+
+            json.put(ADDITIONAL_DATA, additionalData);
             Log.v(LOG_TAG, "extrasToJSON: " + json.toString());
 
             return json;
@@ -246,5 +457,9 @@ public class PushPlugin extends CordovaPlugin {
 
     public static boolean isActive() {
         return gWebView != null;
+    }
+
+    protected static void setRegistrationID(String token) {
+        registration_id = token;
     }
 }

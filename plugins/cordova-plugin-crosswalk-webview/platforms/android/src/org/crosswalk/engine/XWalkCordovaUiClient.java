@@ -32,10 +32,15 @@ import org.xwalk.core.XWalkJavascriptResult;
 import org.xwalk.core.XWalkUIClient;
 import org.xwalk.core.XWalkView;
 
+import org.crosswalk.engine.XWalkWebViewEngine.PermissionRequestListener;
+
 public class XWalkCordovaUiClient extends XWalkUIClient {
     private static final String TAG = "XWalkCordovaUiClient";
     protected final CordovaDialogsHelper dialogsHelper;
     protected final XWalkWebViewEngine parentEngine;
+
+    private XWalkFileChooser mFileChooser;
+    private CordovaPlugin mFileChooserResultPlugin;
 
     private static final int FILECHOOSER_RESULTCODE = 5173;
 
@@ -68,7 +73,7 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
     /**
      * Tell the client to display a javascript alert dialog.
      */
-    private boolean onJsAlert(XWalkView view, String url, String message,
+    public boolean onJsAlert(XWalkView view, String url, String message,
                               final XWalkJavascriptResult result) {
         dialogsHelper.showAlert(message, new CordovaDialogsHelper.Result() {
             @Override
@@ -86,7 +91,7 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
     /**
      * Tell the client to display a confirm dialog to the user.
      */
-    private boolean onJsConfirm(XWalkView view, String url, String message,
+    public boolean onJsConfirm(XWalkView view, String url, String message,
                                 final XWalkJavascriptResult result) {
         dialogsHelper.showConfirm(message, new CordovaDialogsHelper.Result() {
             @Override
@@ -109,7 +114,7 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
      * Since we are hacking prompts for our own purposes, we should not be using them for
      * this purpose, perhaps we should hack console.log to do this instead!
      */
-    private boolean onJsPrompt(XWalkView view, String origin, String message, String defaultValue,
+    public boolean onJsPrompt(XWalkView view, String origin, String message, String defaultValue,
                                final XWalkJavascriptResult result) {
         // Unlike the @JavascriptInterface bridge, this method is always called on the UI thread.
         String handledRet = parentEngine.bridge.promptOnJsPrompt(origin, message, defaultValue);
@@ -133,8 +138,8 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
 
     /**
      * Notify the host application that a page has started loading.
-     * This method is called once for each main frame load so a page with iframes or framesets will call onPageStarted
-     * one time for the main frame. This also means that onPageStarted will not be called when the contents of an
+     * This method is called once for each main frame load so a page with iframes or framesets will call onPageLoadStarted
+     * one time for the main frame. This also means that onPageLoadStarted will not be called when the contents of an
      * embedded frame changes, i.e. clicking a link whose target is an iframe.
      *
      * @param view The webView initiating the callback.
@@ -142,9 +147,8 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
      */
     @Override
     public void onPageLoadStarted(XWalkView view, String url) {
-
-        // Only proceed if this is a top-level navigation
-        if (view.getUrl() != null && view.getUrl().equals(url)) {
+        LOG.d(TAG, "onPageLoadStarted(" + url + ")");
+        if (view.getUrl() != null) {
             // Flush stale messages.
             parentEngine.client.onPageStarted(url);
             parentEngine.bridge.reset();
@@ -161,7 +165,7 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
      */
     @Override
     public void onPageLoadStopped(XWalkView view, String url, LoadStatus status) {
-        LOG.d(TAG, "onPageFinished(" + url + ")");
+        LOG.d(TAG, "onPageLoadStopped(" + url + ")");
         if (status == LoadStatus.FINISHED) {
             parentEngine.client.onPageFinishedLoading(url);
         } else if (status == LoadStatus.FAILED) {
@@ -172,14 +176,33 @@ public class XWalkCordovaUiClient extends XWalkUIClient {
 
     // File Chooser
     @Override
-    public void openFileChooser(XWalkView view, final ValueCallback<Uri> uploadFile, String acceptType, String capture) {
-        uploadFile.onReceiveValue(null);
+    public void openFileChooser(XWalkView view, final ValueCallback<Uri> uploadFile,
+            final String acceptType, final String capture) {
+        if (mFileChooser == null) {
+            mFileChooser = new XWalkFileChooser(parentEngine.cordova.getActivity());
+            mFileChooserResultPlugin = new CordovaPlugin() {
+                @Override
+                public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+                    mFileChooser.onActivityResult(requestCode, resultCode, intent);
+                }
+            };
+        }
 
-        parentEngine.cordova.setActivityResultCallback(new CordovaPlugin() {
+        PermissionRequestListener listener = new PermissionRequestListener() {
             @Override
-            public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-                parentEngine.webView.onActivityResult(requestCode, resultCode, intent);
+            public void onRequestPermissionResult(int requestCode, String[] permissions,
+                    int[] grantResults) {
+                for (int i = 0; i < permissions.length; ++i) {
+                    Log.d(TAG, "permission:" + permissions[i] + " result:" + grantResults[i]);
+                }
+                parentEngine.cordova.setActivityResultCallback(mFileChooserResultPlugin);
+                mFileChooser.showFileChooser(uploadFile, acceptType, capture);
             }
-        });
+        };
+
+        if (!parentEngine.requestPermissionsForFileChooser(listener)) {
+            parentEngine.cordova.setActivityResultCallback(mFileChooserResultPlugin);
+            mFileChooser.showFileChooser(uploadFile, acceptType, capture);
+        }
     }
 }

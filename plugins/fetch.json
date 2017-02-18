@@ -1,117 +1,92 @@
 {
     "cordova-plugin-geolocation": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-geolocation",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-geolocation@~2.4.1"
         },
         "is_top_level": true,
+        "variables": {
+            "GEOLOCATION_USAGE_DESCRIPTION": " "
+        }
+    },
+    "cordova-plugin-compat": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-compat"
+        },
+        "is_top_level": false,
         "variables": {}
     },
     "cordova-plugin-file": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-file",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-file@~4.3.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-file-transfer": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-file-transfer",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-file-transfer@~1.6.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-network-information": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-network-information",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-network-information@~1.3.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-media": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-media",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-media@~2.4.1"
         },
         "is_top_level": true,
-        "variables": {}
+        "variables": {
+            "MICROPHONE_USAGE_DESCRIPTION": " "
+        }
     },
     "cordova-plugin-splashscreen": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-splashscreen",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-splashscreen@~4.0.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-vibration": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-vibration",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-vibration@~2.1.3"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-dialogs": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-dialogs",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-dialogs@~1.3.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-inappbrowser": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-inappbrowser",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-inappbrowser@~1.6.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "cordova-plugin-device": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-device",
-            "subdir": "."
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "cordova-plugin-statusbar": {
-        "source": {
-            "type": "git",
-            "url": "https://github.com/apache/cordova-plugin-statusbar",
-            "subdir": "."
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "net.bgta.phonegap.plugin.appversion": {
-        "source": {
-            "type": "git",
-            "url": "https://github.com/bgta/net.bgta.phonegap.appversion",
-            "subdir": "."
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "org.transistorsoft.cordova.background-geolocation": {
-        "source": {
-            "type": "git",
-            "url": "https://github.com/christocracy/cordova-plugin-background-geolocation.git",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-device@~1.1.4"
         },
         "is_top_level": true,
         "variables": {}
@@ -119,25 +94,67 @@
     "cordova-plugin-whitelist": {
         "source": {
             "type": "registry",
-            "id": "cordova-plugin-whitelist@1"
+            "id": "cordova-plugin-whitelist@~1.3.1"
         },
         "is_top_level": true,
         "variables": {}
     },
     "phonegap-plugin-push": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/phonegap/phonegap-plugin-push",
-            "subdir": "."
+            "type": "registry",
+            "id": "phonegap-plugin-push@~1.9.3"
+        },
+        "is_top_level": true,
+        "variables": {
+            "SENDER_ID": "ID"
+        }
+    },
+    "cordova-plugin-statusbar": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-statusbar@~2.2.1"
         },
         "is_top_level": true,
         "variables": {}
     },
+    "cordova-plugin-mauron85-background-geolocation": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-mauron85-background-geolocation@~2.2.5"
+        },
+        "is_top_level": true,
+        "variables": {
+            "ALWAYS_USAGE_DESCRIPTION": "This app requires background location tracking"
+        }
+    },
     "cordova-plugin-crosswalk-webview": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/crosswalk-project/cordova-plugin-crosswalk-webview",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-crosswalk-webview@~2.3.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-appavailability": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-appavailability@~0.4.2"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-transport-security": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-transport-security"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-app-version": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-app-version"
         },
         "is_top_level": true,
         "variables": {}
